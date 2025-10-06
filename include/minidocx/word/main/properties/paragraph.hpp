@@ -7,7 +7,7 @@
 #pragma once
 
 #include "word/main/properties/base.hpp"
-
+#include <vector>
 
 namespace MINIDOCX_NAMESPACE
 {
@@ -15,6 +15,65 @@ namespace MINIDOCX_NAMESPACE
   {
     std::string style_;
 
+    // Specifies the behavior of the tab stop ST_TabJc (Custom Tab Stop Type 17.18.84)
+    enum class TabType
+    {
+      // A tab that does not have a tab stop in the parent paragraph,
+      // but instead is used to draw a vertical line at the specified
+      // tab location in the parent paragraph. (Bar Tab)
+      Bar,
+      // A tab where the following text is centered around the
+      // specified tab location. (Center Tab)
+      Center,
+      // A tab that is removed and ignored when the document is processed.
+      // (No Tab Stop)
+      Clear,
+      // A tab where the following text is aligned around the first
+      // decimal character in following text runs. (Decimal Tab)
+      Decimal,
+      // A tab where the following text is aligned to its trailing edge.
+      // (Trailing Tab)
+      End, 
+      // Included in the spec for backwards compatibility.
+      // A tab that specifies that the tab is a list tab, a tab stop between
+      // the numbering and the paragraph contents. (List Tab)
+      Num, 
+      // A tab where the following text is aligned to its leading edge
+      // (Leading Tab)
+      Start
+    };
+
+    enum class LeaderType
+    {
+      // Dotted line
+      Dot,
+      // Solid Line
+      // Included in the spec for backwards compatibility.
+      Heavy,
+      // Dashed Line
+      Hyphen,
+      // Centered dotted line
+      MiddleDot,
+      // No leader
+      None,
+      // Solid Line
+      Underscore
+    };
+    // Tabs, specifies a tab stop within the paragraph.
+    // The stop location always is measured from the leading edge
+    // of the paragraph in which it is used.
+    struct Tabs
+    {
+      TabType type_ = TabType::Clear;
+      size_t pos_ = 0;
+      // leader is optional in the spec
+      std::optional<LeaderType> leader_;
+    };
+
+    std::optional<std::vector<Tabs>> tabs_;
+
+    // specifies that this paragraph will be displayed from right to left
+    bool rightLayout_ = false;
 
     // Paragraph Alignment 对齐方式
     std::optional<Alignment> align_;

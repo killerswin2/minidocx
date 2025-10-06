@@ -81,6 +81,87 @@ namespace MINIDOCX_NAMESPACE
     initRelationshipsFor(mainPart_);
   }
 
+  static void writeParagraphTab(pugi::xml_node w_tabs, const ParagraphProperties::Tabs& tab)
+  {
+    pugi::xml_node w_tab = w_tabs.append_child("w:tab");
+    switch (tab.type_) {
+    case ParagraphProperties::TabType::Bar:
+      w_tab.append_attribute("w:val") = "bar";
+      break;
+
+    case ParagraphProperties::TabType::Center:
+      w_tab.append_attribute("w:val") = "center";
+      break;
+    
+    case ParagraphProperties::TabType::Clear:
+      w_tab.append_attribute("w:val") = "clear";
+      break;
+
+    case ParagraphProperties::TabType::Decimal:
+      w_tab.append_attribute("w:val") = "decimal";
+      break;
+
+    case ParagraphProperties::TabType::End:
+      w_tab.append_attribute("w:val") = "end";
+      break;
+
+    case ParagraphProperties::TabType::Num:
+      w_tab.append_attribute("w:val") = "num";
+      break;
+
+    case ParagraphProperties::TabType::Start:
+      w_tab.append_attribute("w:val") = "start";
+      break;
+    }
+
+    w_tab.append_attribute("w:pos") = tab.pos_;
+
+    if(tab.leader_.has_value())
+    {
+      switch (tab.leader_.value()) {
+        case ParagraphProperties::LeaderType::Dot:
+          w_tab.append_attribute("w:leader") = "dot";
+          break;
+
+        case ParagraphProperties::LeaderType::Heavy:
+          w_tab.append_attribute("w:leader") = "heavy";
+          break;
+
+        case ParagraphProperties::LeaderType::Hyphen:
+          w_tab.append_attribute("w:leader") = "hyphen";
+          break;
+
+        case ParagraphProperties::LeaderType::MiddleDot:
+          w_tab.append_attribute("w:leader") = "middleDot";
+          break;
+
+        case ParagraphProperties::LeaderType::None:
+          w_tab.append_attribute("w:leader") = "none";
+          break;
+
+        case ParagraphProperties::LeaderType::Underscore:
+          w_tab.append_attribute("w:leader") = "underscore";
+          break;
+      }
+    }
+  }
+
+  static void writeParagraphTabs(pugi::xml_node w_pPr, const std::vector<ParagraphProperties::Tabs>& tabs)
+  {
+    if(tabs.size() == 1)
+    {
+      writeParagraphTab(w_pPr, tabs[0]);
+    }
+    else
+    {
+      pugi::xml_node w_tabs = w_pPr.append_child("w:tabs");
+
+      for(auto& tab: tabs)
+      {
+        writeParagraphTab(w_tabs, tab);
+      }
+    }
+  }
 
   static void writeParagraphAlignment(pugi::xml_node w_pPr, const Alignment& align)
   {
@@ -248,6 +329,12 @@ namespace MINIDOCX_NAMESPACE
   {
     if (prop.style_.size() > 0)
       w_pPr.append_child("w:pStyle").append_attribute("w:val") = removeSpaces(prop.style_).c_str();
+    
+    if (prop.tabs_.has_value())
+      writeParagraphTabs(w_pPr, prop.tabs_.value());
+
+    // inorder for stop tabs to work, we will always need to right this to the docx file, even if it is not required.
+    w_pPr.append_child("w:bidi").append_attribute("w:val") = prop.rightLayout_ ? "1" : "0";
 
     if (prop.align_.has_value())
       writeParagraphAlignment(w_pPr, prop.align_.value());
