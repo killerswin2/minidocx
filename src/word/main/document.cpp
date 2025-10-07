@@ -18,6 +18,7 @@
 #include "pugixml.hpp"
 
 
+
 namespace MINIDOCX_NAMESPACE
 {
   Document::Document()
@@ -148,18 +149,10 @@ namespace MINIDOCX_NAMESPACE
 
   static void writeParagraphTabs(pugi::xml_node w_pPr, const std::vector<ParagraphProperties::Tabs>& tabs)
   {
-    if(tabs.size() == 1)
+    pugi::xml_node w_tabs = w_pPr.append_child("w:tabs");
+    for(auto& tab: tabs)
     {
-      writeParagraphTab(w_pPr, tabs[0]);
-    }
-    else
-    {
-      pugi::xml_node w_tabs = w_pPr.append_child("w:tabs");
-
-      for(auto& tab: tabs)
-      {
-        writeParagraphTab(w_tabs, tab);
-      }
+      writeParagraphTab(w_tabs, tab);
     }
   }
 
@@ -624,7 +617,7 @@ namespace MINIDOCX_NAMESPACE
         if (count > 0) {
           pugi::xml_node w_t = w_r.append_child("w:t");
           if (whitespace)
-            w_t.append_attribute("xml:space") = "preserve";
+            w_t.append_attribute("xml:space").set_value("preserve");   
           w_t.text().set(start, count);
         }
 
@@ -641,7 +634,10 @@ namespace MINIDOCX_NAMESPACE
         }
       }
       if (start < end) {
-        w_r.append_child("w:t").text().set(start);
+        pugi::xml_node w_t = w_r.append_child("w:t");
+        if (whitespace)
+          w_t.append_attribute("xml:space").set_value("preserve");
+        w_t.text().set(start);
       }
     }
   }
