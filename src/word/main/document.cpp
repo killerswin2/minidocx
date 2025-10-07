@@ -187,9 +187,11 @@ namespace MINIDOCX_NAMESPACE
     w_ind.append_attribute(
       indent.left_.chars_ ? "w:leftChars" : "w:left") = indent.left_.value_;
 
-    w_ind.append_attribute(
-      indent.right_.chars_ ? "w:rightChars" : "w:right") = indent.right_.value_;
-
+    if (indent.right_.value_ != 0)
+    {
+        w_ind.append_attribute(
+            indent.right_.chars_ ? "w:rightChars" : "w:right") = indent.right_.value_;
+    }
     switch (indent.special_.type_)
     {
     case ParagraphProperties::SpecialIndentationType::FirstLine:
@@ -617,7 +619,7 @@ namespace MINIDOCX_NAMESPACE
         if (count > 0) {
           pugi::xml_node w_t = w_r.append_child("w:t");
           if (whitespace)
-            w_t.append_attribute("xml:space").set_value("preserve");   
+            w_t.append_attribute("xml:space").set_value("preserve");
           w_t.text().set(start, count);
         }
 
@@ -636,7 +638,7 @@ namespace MINIDOCX_NAMESPACE
       if (start < end) {
         pugi::xml_node w_t = w_r.append_child("w:t");
         if (whitespace)
-          w_t.append_attribute("xml:space").set_value("preserve");
+            w_t.append_attribute("xml:space").set_value("preserve");
         w_t.text().set(start);
       }
     }
@@ -1142,6 +1144,24 @@ namespace MINIDOCX_NAMESPACE
         default:
           w_lvl.append_child("w:numFmt").append_attribute("w:val") = "bullet";
           break;
+        }
+
+        if (lvl.suffCon_.has_value())
+        {
+            switch (lvl.suffCon_.value())
+            {
+            case SuffType::Nothing:
+                w_lvl.append_child("w:suff").append_attribute("w:val") = "nothing";
+                break;
+
+            case SuffType::Space:
+                w_lvl.append_child("w:suff").append_attribute("w:val") = "space";
+                break;
+
+            case SuffType::Tab:
+                w_lvl.append_child("w:suff").append_attribute("w:val") = "tab";
+                break;
+            }
         }
         
         w_lvl.append_child("w:lvlText").append_attribute("w:val") = lvl.numFmt_.c_str();

@@ -34,12 +34,21 @@ namespace MINIDOCX_NAMESPACE
     OrdinalText, // First, Second, Third, etc.
     CardinalText // One, Two, Three, etc.
   };
+  // specifies content Between Numbering Symbol and Paragraph Text
+  enum class SuffType
+  {
+      Nothing,
+      Space, 
+      Tab
+  };
 
   struct LevelDefinition : ParagraphProperties, RichTextProperties
   {
     size_t numStart_ = 1;
     NumberStyle numStyle_ = NumberStyle::Decimal;
     std::string numFmt_ = "%1.";
+    //content Between Numbering Symbol and Paragraph Text
+    std::optional<SuffType> suffCon_;
     Alignment numAlign_ = Alignment::Left;
   };
 
