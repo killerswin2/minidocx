@@ -101,16 +101,16 @@ namespace MINIDOCX_NAMESPACE
       w_tab.append_attribute("w:val") = "decimal";
       break;
 
-    case ParagraphProperties::TabType::End:
-      w_tab.append_attribute("w:val") = "end";
+    case ParagraphProperties::TabType::Right:
+      w_tab.append_attribute("w:val") = "right";
       break;
 
     case ParagraphProperties::TabType::Num:
       w_tab.append_attribute("w:val") = "num";
       break;
 
-    case ParagraphProperties::TabType::Start:
-      w_tab.append_attribute("w:val") = "start";
+    case ParagraphProperties::TabType::Left:
+      w_tab.append_attribute("w:val") = "left";
       break;
     }
 

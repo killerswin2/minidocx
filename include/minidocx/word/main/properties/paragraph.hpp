@@ -33,14 +33,14 @@ namespace MINIDOCX_NAMESPACE
       Decimal,
       // A tab where the following text is aligned to its trailing edge.
       // (Trailing Tab)
-      End, 
+      Right, 
       // Included in the spec for backwards compatibility.
       // A tab that specifies that the tab is a list tab, a tab stop between
       // the numbering and the paragraph contents. (List Tab)
       Num, 
       // A tab where the following text is aligned to its leading edge
       // (Leading Tab)
-      Start
+      Left
     };
 
     enum class LeaderType
