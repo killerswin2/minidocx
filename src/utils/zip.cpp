@@ -24,7 +24,7 @@ namespace MINIDOCX_NAMESPACE
     mz_uint64 m_orig_archive_size{ 0 };
   };
 
-  static size_t readStream(void* pOpaque, size_t file_ofs, void* pBuf, size_t n) noexcept
+  static size_t readStream(void* pOpaque, uint64_t file_ofs, void* pBuf, size_t n) noexcept
   {
     auto* in = static_cast<std::istream*>(pOpaque);
     in->seekg(file_ofs);
@@ -37,7 +37,7 @@ namespace MINIDOCX_NAMESPACE
     return 0;
   }
 
-  static size_t writeStream(void* pOpaque, size_t file_ofs, const void* pBuf, size_t n) noexcept
+  static size_t writeStream(void* pOpaque, uint64_t file_ofs, const void* pBuf, size_t n) noexcept
   {
     auto* out = static_cast<std::ostream*>(pOpaque);
     out->seekp(file_ofs);

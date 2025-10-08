@@ -1,95 +1,123 @@
 {
-  "version": 8,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 28,
-    "patch": 0
-  },
-  "configurePresets": [
-    {
-      "name": "x64-win-msbuild-v143",
-      "binaryDir": "${sourceDir}/out/${presetName}",
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
-      "toolset": "v143",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "windows-msvc-x64"
-        }
-      }
+    "version": 8,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
     },
-    {
-      "name": "x64-linux-ninja-gcc",
-      "binaryDir": "${sourceDir}/out/${presetName}",
-      "generator": "Ninja Multi-Config",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "linux-gcc-x64"
+    "configurePresets": [
+        {
+            "name": "x64-win-msbuild-v143",
+            "binaryDir": "${sourceDir}/out/${presetName}",
+            "generator": "Visual Studio 17 2022",
+            "architecture": "x64",
+            "toolset": "v143",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "intelliSenseMode": "windows-msvc-x64"
+                }
+            }
         },
-        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "$env{HOME}/Projects/$ms{projectDirName}"
+        {
+            "name": "x64-linux-ninja-gcc",
+            "binaryDir": "${sourceDir}/out/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "intelliSenseMode": "linux-gcc-x64"
+                },
+                "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+                    "sourceDir": "$env{HOME}/Projects/$ms{projectDirName}"
+                }
+            }
+        },
+        {
+            "name": "x64-win-ninja-gcc",
+            "inherits": "x64-linux-ninja-gcc",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "intelliSenseMode": "linux-gcc-x64"
+                }
+            }
+        },
+        {
+            "name": "arm64-mac-make-gcc",
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "/opt/homebrew/bin/aarch64-apple-darwin24-gcc-15",
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/bin/aarch64-apple-darwin24-g++-15"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "intelliSenseMode": "ios-clang-arm64"
+                }
+            }
         }
-      }
-    },
-    {
-      "name": "x64-win-ninja-gcc",
-      "inherits": "x64-linux-ninja-gcc",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "linux-gcc-x64"
+    ],
+    "buildPresets": [
+        {
+            "name": "x64-win-msbuild-v143-debug",
+            "configurePreset": "x64-win-msbuild-v143",
+            "configuration": "Debug"
+        },
+        {
+            "name": "x64-win-msbuild-v143-release",
+            "configurePreset": "x64-win-msbuild-v143",
+            "configuration": "Release"
+        },
+        {
+            "name": "x64-win-ninja-gcc-debug",
+            "configurePreset": "x64-win-ninja-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "x64-win-ninja-gcc-release",
+            "configurePreset": "x64-win-ninja-gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "x64-linux-ninja-gcc-debug",
+            "configurePreset": "x64-linux-ninja-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "x64-linux-ninja-gcc-release",
+            "configurePreset": "x64-linux-ninja-gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "arm64-mac-make-gcc-debug",
+            "configurePreset": "arm64-mac-make-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "arm64-mac-make-gcc-release",
+            "configurePreset": "arm64-mac-make-gcc",
+            "configuration": "Release"
         }
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "x64-win-msbuild-v143-debug",
-      "configurePreset": "x64-win-msbuild-v143",
-      "configuration": "Debug"
-    },
-    {
-      "name": "x64-win-msbuild-v143-release",
-      "configurePreset": "x64-win-msbuild-v143",
-      "configuration": "Release"
-    },
-    {
-      "name": "x64-win-ninja-gcc-debug",
-      "configurePreset": "x64-win-ninja-gcc",
-      "configuration": "Debug"
-    },
-    {
-      "name": "x64-win-ninja-gcc-release",
-      "configurePreset": "x64-win-ninja-gcc",
-      "configuration": "Release"
-    },
-    {
-      "name": "x64-linux-ninja-gcc-debug",
-      "configurePreset": "x64-linux-ninja-gcc",
-      "configuration": "Debug"
-    },
-    {
-      "name": "x64-linux-ninja-gcc-release",
-      "configurePreset": "x64-linux-ninja-gcc",
-      "configuration": "Release"
-    }
-  ]
+    ]
 }
