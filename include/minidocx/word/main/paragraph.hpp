@@ -20,10 +20,12 @@ namespace MINIDOCX_NAMESPACE
 {
   class RichText;
   class Picture;
+  class SimpleField;
+
   using RunPointer = std::shared_ptr<Run>;
   using RichTextPointer = std::shared_ptr<RichText>;
   using PicturePointer = std::shared_ptr<Picture>;
-
+  using SimpleFieldPointer = std::shared_ptr<SimpleField>;
 
   class MINIDOCX_API Paragraph : public Block
   {
@@ -46,7 +48,10 @@ namespace MINIDOCX_NAMESPACE
     RichTextPointer addRichText(std::string text);
     inline RichTextPointer addRichText(std::u8string text) { return addRichText(std::string(reinterpret_cast<const char*>(text.c_str()), text.size())); }
 
+    SimpleFieldPointer addSimpleField();
+
     PicturePointer addPicture(const RelationshipId id);
+
 
     void deleteRun(const RunPointer& run);
 

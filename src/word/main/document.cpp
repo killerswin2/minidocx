@@ -11,6 +11,7 @@
 #include "word/main/picture.hpp"
 #include "word/main/table.hpp"
 #include "word/main/cell.hpp"
+#include "word/main/simpleField.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 #include "utils/exceptions.hpp"
@@ -736,6 +737,237 @@ namespace MINIDOCX_NAMESPACE
     pic_spPr.append_child("a:ln").append_child("a:noFill");
   }
 
+  static void writeSimpleField(pugi::xml_node w_p, const SimpleField& simpleF)
+  {
+    pugi::xml_node w_fldSimple = w_p.append_child("w:fldSimple");
+
+    switch (simpleF.prop_.code_)
+    {
+      case FieldCode::ADDRESSBLOCK :
+        w_fldSimple.append_attribute("w:instr") = "ADDRESSBLOCK";
+        break;
+      case FieldCode::ADVANCE :
+        w_fldSimple.append_attribute("w:instr") = "ADVANCE";
+        break;
+      case FieldCode::ASK :
+        w_fldSimple.append_attribute("w:instr") = "ASK";
+        break;
+      case FieldCode::AUTHOR :
+        w_fldSimple.append_attribute("w:instr") = "AUTHOR";
+        break;
+      case FieldCode::AUTOTEXT :
+        w_fldSimple.append_attribute("w:instr") = "AUTOTEXT";
+        break;
+      case FieldCode::AUTOTEXTLIST :
+        w_fldSimple.append_attribute("w:instr") = "AUTOTEXTLIST";
+        break;
+      case FieldCode::BIBLIOGRAPHY :
+        w_fldSimple.append_attribute("w:instr") = "BIBLIOGRAPHY";
+        break;
+      case FieldCode::CITATION :
+        w_fldSimple.append_attribute("w:instr") = "CITATION";
+        break;
+      case FieldCode::COMMENTS :
+        w_fldSimple.append_attribute("w:instr") = "COMMENTS";
+        break;
+      case FieldCode::COMPARE :
+        w_fldSimple.append_attribute("w:instr") = "COMPARE";
+        break;
+      case FieldCode::CREATEDATE :
+        w_fldSimple.append_attribute("w:instr") = "CREATEDATE";
+        break;
+      case FieldCode::DATABASE :
+        w_fldSimple.append_attribute("w:instr") = "DATABASE";
+        break;
+      case FieldCode::DATE :
+        w_fldSimple.append_attribute("w:instr") = "DATE";
+        break;
+      case FieldCode::DOCPROPERTY :
+        w_fldSimple.append_attribute("w:instr") = "DOCPROPERTY";
+        break;
+      case FieldCode::DOCVARIABLE :
+        w_fldSimple.append_attribute("w:instr") = "DOCVARIABLE";
+        break;
+      case FieldCode::EDITTIME :
+        w_fldSimple.append_attribute("w:instr") = "EDITTIME";
+        break;
+      case FieldCode::FILENAME :
+        w_fldSimple.append_attribute("w:instr") = "FILENAME";
+        break;
+      case FieldCode::FILESIZE :
+        w_fldSimple.append_attribute("w:instr") = "FILESIZE";
+        break;
+      case FieldCode::FILLIN :
+        w_fldSimple.append_attribute("w:instr") = "FILLIN";
+        break;
+      case FieldCode::FORMCHECKBOX :
+        w_fldSimple.append_attribute("w:instr") = "FORMCHECKBOX";
+        break;
+      case FieldCode::FORMDROPDOWN :
+        w_fldSimple.append_attribute("w:instr") = "FORMDROPDOWN";
+        break;
+      case FieldCode::FORMTEXT :
+        w_fldSimple.append_attribute("w:instr") = "FORMTEXT";
+        break;
+      case FieldCode::GOTOBUTTON :
+        w_fldSimple.append_attribute("w:instr") = "GOTOBUTTON";
+        break;
+      case FieldCode::GREETINGLINE :
+        w_fldSimple.append_attribute("w:instr") = "GREETINGLINE";
+        break;
+      case FieldCode::HYPERLINK :
+        w_fldSimple.append_attribute("w:instr") = "HYPERLINK";
+        break;
+      case FieldCode::IF :
+        w_fldSimple.append_attribute("w:instr") = "IF";
+        break;
+      case FieldCode::INCLUDEPICTURE :
+        w_fldSimple.append_attribute("w:instr") = "INCLUDEPICTURE";
+        break;
+      case FieldCode::INCLUDETEXT :
+        w_fldSimple.append_attribute("w:instr") = "INCLUDETEXT";
+        break;
+      case FieldCode::INDEX :
+        w_fldSimple.append_attribute("w:instr") = "INDEX";
+        break;
+      case FieldCode::KEYWORDS :
+        w_fldSimple.append_attribute("w:instr") = "KEYWORDS";
+        break;
+      case FieldCode::LASTSAVEDBY :
+        w_fldSimple.append_attribute("w:instr") = "LASTSAVEDBY";
+        break;
+      case FieldCode::LINK :
+        w_fldSimple.append_attribute("w:instr") = "LINK";
+        break;
+      case FieldCode::LISTNUM :
+        w_fldSimple.append_attribute("w:instr") = "LISTNUM";
+        break;
+      case FieldCode::MACROBUTTON :
+        w_fldSimple.append_attribute("w:instr") = "MACROBUTTON";
+        break;
+      case FieldCode::MERGEFIELD :
+        w_fldSimple.append_attribute("w:instr") = "MERGEFIELD";
+        break;
+      case FieldCode::MERGEREC :
+        w_fldSimple.append_attribute("w:instr") = "MERGEREC";
+        break;
+      case FieldCode::MERGESEQ :
+        w_fldSimple.append_attribute("w:instr") = "MERGESEQ";
+        break;
+      case FieldCode::NEXT :
+        w_fldSimple.append_attribute("w:instr") = "NEXT";
+        break;
+      case FieldCode::NEXTIF :
+        w_fldSimple.append_attribute("w:instr") = "NEXTIF";
+        break;
+      case FieldCode::NOTEREF :
+        w_fldSimple.append_attribute("w:instr") = "NOTEREF";
+        break;
+      case FieldCode::NUMCHARS :
+        w_fldSimple.append_attribute("w:instr") = "NUMCHARS";
+        break;
+      case FieldCode::NUMPAGES :
+        w_fldSimple.append_attribute("w:instr") = "NUMPAGES";
+        break;
+      case FieldCode::NUMWORDS :
+        w_fldSimple.append_attribute("w:instr") = "NUMWORDS";
+        break;
+      case FieldCode::PAGE :
+        w_fldSimple.append_attribute("w:instr") = "PAGE";
+        break;
+      case FieldCode::PAGEREF :
+        w_fldSimple.append_attribute("w:instr") = "PAGEREF";
+        break;
+      case FieldCode::PRINT :
+        w_fldSimple.append_attribute("w:instr") = "PRINT";
+        break;
+      case FieldCode::PRINTDATE :
+        w_fldSimple.append_attribute("w:instr") = "PRINTDATE";
+        break;
+      case FieldCode::PRIVATE :
+        w_fldSimple.append_attribute("w:instr") = "PRIVATE";
+        break;
+      case FieldCode::QUOTE :
+        w_fldSimple.append_attribute("w:instr") = "QUOTE";
+        break;
+      case FieldCode::RD :
+        w_fldSimple.append_attribute("w:instr") = "RD";
+        break;
+      case FieldCode::REF :
+        w_fldSimple.append_attribute("w:instr") = "REF";
+        break;
+      case FieldCode::REVNUM :
+        w_fldSimple.append_attribute("w:instr") = "REVNUM";
+        break;
+      case FieldCode::SAVEDATE :
+        w_fldSimple.append_attribute("w:instr") = "SAVEDATE";
+        break;
+      case FieldCode::SECTION :
+        w_fldSimple.append_attribute("w:instr") = "SECTION";
+        break;
+      case FieldCode::SECTIONPAGES :
+        w_fldSimple.append_attribute("w:instr") = "SECTIONPAGES";
+        break;
+      case FieldCode::SEQ :
+        w_fldSimple.append_attribute("w:instr") = "SEQ";
+        break;
+      case FieldCode::SET :
+        w_fldSimple.append_attribute("w:instr") = "SET";
+        break;
+      case FieldCode::SKIPIF :
+        w_fldSimple.append_attribute("w:instr") = "SKIPIF";
+        break;
+      case FieldCode::STYLEREF :
+        w_fldSimple.append_attribute("w:instr") = "STYLEREF";
+        break;
+      case FieldCode::SUBJECT :
+        w_fldSimple.append_attribute("w:instr") = "SUBJECT";
+        break;
+      case FieldCode::SYMBOL :
+        w_fldSimple.append_attribute("w:instr") = "SYMBOL";
+        break;
+      case FieldCode::TA :
+        w_fldSimple.append_attribute("w:instr") = "TA";
+        break;
+      case FieldCode::TC :
+        w_fldSimple.append_attribute("w:instr") = "TC";
+        break;
+      case FieldCode::TEMPLATE :
+        w_fldSimple.append_attribute("w:instr") = "TEMPLATE";
+        break;
+      case FieldCode::TIME :
+        w_fldSimple.append_attribute("w:instr") = "TIME";
+        break;
+      case FieldCode::TITLE :
+        w_fldSimple.append_attribute("w:instr") = "TITLE";
+        break;
+      case FieldCode::TOA :
+        w_fldSimple.append_attribute("w:instr") = "TOA";
+        break;
+      case FieldCode::TOC :
+        w_fldSimple.append_attribute("w:instr") = "TOC";
+        break;
+      case FieldCode::USERADDRESS :
+        w_fldSimple.append_attribute("w:instr") = "USERADDRESS";
+        break;
+      case FieldCode::USERINITIALS :
+        w_fldSimple.append_attribute("w:instr") = "USERINITIALS";
+        break;
+      case FieldCode::USERNAME :
+        w_fldSimple.append_attribute("w:instr") = "USERNAME";
+        break;
+      case FieldCode::XE :
+        w_fldSimple.append_attribute("w:instr") = "XE";
+        break;
+    }
+
+    if(simpleF.prop_.lock_.has_value())
+      w_fldSimple.append_attribute("w:fldLock") = simpleF.prop_.lock_.value();
+
+    if(simpleF.prop_.dirty_.has_value())
+      w_fldSimple.append_attribute("w:dirty") = simpleF.prop_.dirty_.value();
+  }
+
   static void writeRun(pugi::xml_node w_p, Run& run)
   {
     switch (run.type())
@@ -746,6 +978,10 @@ namespace MINIDOCX_NAMESPACE
 
     case RunType::Picture:
       writePicture(w_p, dynamic_cast<Picture&>(run));
+      break;
+
+    case RunType::SimpleField:
+      writeSimpleField(w_p, dynamic_cast<SimpleField&> (run));
       break;
     }
   }
@@ -906,6 +1142,300 @@ namespace MINIDOCX_NAMESPACE
     }
   }
 
+  static void writeNumberingFormat(pugi::xml_attribute attribute, const NumberFormat& numFor)
+  {
+    switch(numFor)
+    {
+      case NumberFormat::AIUEO:
+        attribute.set_value("aiueo");
+        break;
+
+      case NumberFormat::AIUEOFullWidth:
+        attribute.set_value("aiueoFullWidth");
+        break;
+
+      case NumberFormat::ArabicAbjad:
+        attribute.set_value("arabicAbjad");
+        break;
+
+      case NumberFormat::ArabicAlphabet:
+        attribute.set_value("arabicAlpha");
+        break;
+
+      case NumberFormat::Baht:
+        attribute.set_value("bahtText");
+        break;
+
+      case NumberFormat::Bullet:
+        attribute.set_value("bullet");
+        break;
+
+      case NumberFormat::CardinalText:
+        attribute.set_value("cardinalText");
+        break;
+
+      case NumberFormat::Chicago:
+        attribute.set_value("chicago");
+        break;
+
+      case NumberFormat::ChineseCounting:
+        attribute.set_value("chineseCounting");
+        break;
+
+      case NumberFormat::ChineseCountingThousand:
+        attribute.set_value("chineseCountingThousand");
+        break;
+
+      case NumberFormat::ChineseLegalSimplified:
+        attribute.set_value("chineseLegalSimplified");
+        break;
+
+      case NumberFormat::Chosung:
+        attribute.set_value("chosung");
+        break;
+
+      case NumberFormat::Custom:
+        attribute.set_value("custom");
+        break;
+
+      case NumberFormat::Decimal:
+        attribute.set_value("decimal");
+        break;
+
+      case NumberFormat::DecimalEnclosedCircle:
+        attribute.set_value("decimalEnclosedCircle");
+        break;
+
+      case NumberFormat::DecimalEnclosedCircleChinese:
+        attribute.set_value("decimalEnclosedCircleChinese");
+        break;
+
+      case NumberFormat::DecimalEnclosedFullstop:
+        attribute.set_value("decimalEnclosedFullstop");
+        break;
+
+      case NumberFormat::DecimalEnclosedParen:
+        attribute.set_value("decimalEnclosedParen");
+        break;
+
+      case NumberFormat::DecimalFullWidth:
+        attribute.set_value("decimalFullWidth");
+        break;
+
+      case NumberFormat::DecimalHalfWidth:
+        attribute.set_value("decimalHalfWidth");
+        break;
+
+      case NumberFormat::DecimalZero:
+        attribute.set_value("decimalZero");
+        break;
+
+      case NumberFormat::Dollar:
+        attribute.set_value("dollarText");
+        break;
+
+      case NumberFormat::Ganada:
+        attribute.set_value("ganada");
+        break;
+
+      case NumberFormat::HebrewLetters:
+        attribute.set_value("hebrew1");
+        break;
+
+      case NumberFormat::HebrewAlphabet:
+        attribute.set_value("hebrew2");
+        break;
+
+      case NumberFormat::Hex:
+        attribute.set_value("hex");
+        break;
+
+      case NumberFormat::HindiConsonants:
+        attribute.set_value("hindiConsonants");
+        break;
+
+      case NumberFormat::HindiCounting:
+        attribute.set_value("hindiCounting");
+        break;
+
+      case NumberFormat::HindiNumbers:
+        attribute.set_value("hindiNumbers");
+        break;
+
+      case NumberFormat::HindiVowels:
+        attribute.set_value("hindiVowels");
+        break;
+
+      case NumberFormat::Ideograph:
+        attribute.set_value("ideographDigital");
+        break;
+
+      case NumberFormat::IdeographEnclosedCircle:
+        attribute.set_value("ideographEnclosedCircle");
+        break;
+
+      case NumberFormat::IdeographLegalTraditional:
+        attribute.set_value("ideographLegalTraditional");
+        break;
+
+      case NumberFormat::IdeographTraditional:
+        attribute.set_value("ideographTraditional");
+        break;
+
+      case NumberFormat::IdeographZodiac:
+        attribute.set_value("ideographZodiac");
+        break;
+
+      case NumberFormat::IdeographZodiacTraditional:
+        attribute.set_value("ideographZodiacTraditional");
+        break;
+
+      case NumberFormat::Iroha:
+        attribute.set_value("iroha");
+        break;
+
+      case NumberFormat::IrohaFullWidth:
+        attribute.set_value("irohaFullWidth");
+        break;
+
+      case NumberFormat::JapaneseCounting:
+        attribute.set_value("japaneseCounting");
+        break;
+
+      case NumberFormat::JapaneseDigitalTenThousand:
+        attribute.set_value("japaneseDigitalTenThousand");
+        break;
+
+      case NumberFormat::JapaneseLegal:
+        attribute.set_value("japaneseLegal");
+        break;
+
+      case NumberFormat::KoreanCounting:
+        attribute.set_value("koreanCounting");
+        break;
+
+      case NumberFormat::KoreanDigital:
+        attribute.set_value("koreanDigital");
+        break;
+
+      case NumberFormat::KoreanDigitalAlternate:
+        attribute.set_value("koreanDigital2");
+        break;
+
+      case NumberFormat::KoreanLegal:
+        attribute.set_value("koreanLegal");
+        break;
+
+      case NumberFormat::LowerLetter:
+        attribute.set_value("lowerLetter");
+        break;
+
+      case NumberFormat::LowerRoman:
+        attribute.set_value("lowerRoman");
+        break;
+
+      case NumberFormat::None:
+        attribute.set_value("none");
+        break;
+
+      case NumberFormat::NumberInDash:
+        attribute.set_value("numberInDash");
+        break;
+
+      case NumberFormat::Ordinal:
+        attribute.set_value("ordinal");
+        break;
+
+      case NumberFormat::OrdinalText:
+        attribute.set_value("ordinalText");
+        break;
+
+      case NumberFormat::RussianLower:
+        attribute.set_value("russianLower");
+        break;
+
+      case NumberFormat::RussianUpper:
+        attribute.set_value("russianUpper");
+        break;
+
+      case NumberFormat::TaiwaneseCounting:
+        attribute.set_value("taiwaneseCounting");
+        break;
+
+      case NumberFormat::TaiwaneseCountingThousand:
+        attribute.set_value("taiwaneseCountingThousand");
+        break;
+
+      case NumberFormat::TaiwaneseDigital:
+        attribute.set_value("taiwaneseDigital");
+        break;
+
+      case NumberFormat::ThaiCounting:
+        attribute.set_value("thaiCounting");
+        break;
+
+      case NumberFormat::ThaiLetters:
+        attribute.set_value("thaiLetters");
+        break;
+
+      case NumberFormat::ThaiNumbers:
+        attribute.set_value("thaiNumbers");
+        break;
+
+      case NumberFormat::UpperLetter:
+        attribute.set_value("upperLetter");
+        break;
+
+      case NumberFormat::UpperRoman:
+        attribute.set_value("upperRoman");
+        break;
+
+      case NumberFormat::VietnameseCounting:
+        attribute.set_value("vietnameseCounting");
+        break;
+    }
+  }
+
+
+  static void writePageNumbering(pugi::xml_node w_pgNumType, const SectionProperties::PageNumbering& pgNum)
+  {
+    if(pgNum.chapSep_.has_value())
+    {
+      switch(pgNum.chapSep_.value())
+      {
+        case SectionProperties::ChapSeparatorTypes::Colon:
+          w_pgNumType.append_attribute("w:chapSep") = "colon";
+          break;
+        
+        case SectionProperties::ChapSeparatorTypes::EMDash:
+          w_pgNumType.append_attribute("w:chapSep") = "emDash";
+          break;
+
+        case SectionProperties::ChapSeparatorTypes::ENDash:
+          w_pgNumType.append_attribute("w:chapSep") = "enDash";
+          break;
+
+        case SectionProperties::ChapSeparatorTypes::Hyphen:
+          w_pgNumType.append_attribute("w:chapSep") = "hyphen";
+          break;
+        
+        case SectionProperties::ChapSeparatorTypes::Period:
+          w_pgNumType.append_attribute("w:chapSep") = "period";
+          break;
+      }
+    }
+
+    if(pgNum.chapStyle_.has_value())
+      w_pgNumType.append_attribute("w:chapStyle") = pgNum.chapStyle_.value();
+    
+    if(pgNum.fmt_.has_value())
+
+
+    if(pgNum.startNum_.has_value())
+      w_pgNumType.append_attribute("w:start") = pgNum.startNum_.value();
+
+  }
+
   static void writeSectionProperties(pugi::xml_node w_pPr, const SectionProperties& prop)
   {
     pugi::xml_node w_sectPr = w_pPr.append_child("w:sectPr");
@@ -932,6 +1462,9 @@ namespace MINIDOCX_NAMESPACE
     w_pgMar.append_attribute("w:header") = prop.margins_.header_;
     w_pgMar.append_attribute("w:footer") = prop.margins_.footer_;
     w_pgMar.append_attribute("w:gutter") = prop.margins_.gutter_;
+
+    if(prop.pageNumbering_.has_value())
+      writePageNumbering(w_sectPr.append_child("w:pgNumType"), prop.pageNumbering_.value());
   }
 
   void Document::writeOfficeDocument()

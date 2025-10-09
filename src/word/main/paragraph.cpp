@@ -7,6 +7,7 @@
 #include "word/main/paragraph.hpp"
 #include "word/main/richtext.hpp"
 #include "word/main/picture.hpp"
+#include "word/main/simpleField.hpp"
 #include "utils/exceptions.hpp"
 
 
@@ -22,6 +23,13 @@ namespace MINIDOCX_NAMESPACE
   RichTextPointer Paragraph::addRichText(std::string text)
   {
     auto run{ std::make_shared<RichText>(std::move(text)) };
+    runs_.push_back(run);
+    return run;
+  }
+
+  SimpleFieldPointer Paragraph::addSimpleField()
+  {
+    auto run{std::make_shared<SimpleField>()};
     runs_.push_back(run);
     return run;
   }

@@ -87,6 +87,39 @@ namespace MINIDOCX_NAMESPACE
       size_t gutter_ = 0;
     } margins_;
 
+    enum ChapSeparatorTypes
+    {
+      // :
+      Colon,
+      // —
+      EMDash,
+      // –, this is shorter than EMDash
+      ENDash,
+      // -
+      Hyphen,
+      // .
+      Period
+    };
+
+    struct PageNumbering
+    {
+      // Specifies the separator character that shall appear 
+      // between the chapter and pagenumber.
+      std::optional<ChapSeparatorTypes> chapSep_;
+      // Specifies the one-based index of the heading style 
+      // applied to chapter titles in the document.
+      std::optional<size_t> chapStyle_;
+      // Specifies the number format that shall be used for 
+      // all page numbering in this section.
+      std::optional<NumberFormat> fmt_;
+      // Specifies the page number that appears on the first 
+      // page of the section.
+      // If omitted then the page number starts at the value
+      // of the highest page in the previous section.
+      std::optional<size_t> startNum_;
+    };
+
+    std::optional<PageNumbering> pageNumbering_;
 
     // Document grid 文档网格
     // This element specifies the settings for the document grid, 

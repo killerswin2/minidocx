@@ -12,6 +12,7 @@
 #include "word/main/paragraph.hpp"
 #include "word/main/richtext.hpp"
 #include "word/main/picture.hpp"
+#include "word/main/simpleField.hpp"
 #include "word/main/table.hpp"
 #include "word/main/cell.hpp"
 #include "utils/exceptions.hpp"

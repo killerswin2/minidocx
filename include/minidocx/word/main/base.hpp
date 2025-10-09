@@ -12,7 +12,8 @@
 namespace MINIDOCX_NAMESPACE
 {
   enum class BlockType { Paragraph, Table };
-  enum class RunType { RichText, Picture };
+  enum class RunType { RichText, Picture, SimpleField };
+  
   
   using Block = Node<BlockType>;
   using Run = Node<RunType>;
