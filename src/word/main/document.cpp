@@ -1509,6 +1509,26 @@ namespace MINIDOCX_NAMESPACE
         }
       }
     }
+    if (prop.hdrreferences_.has_value())
+    {
+      for (auto &[id_, type_] : prop.hdrreferences_.value())
+      {
+        pugi::xml_node w_headerReference = w_sectPr.append_child("w:headerReference");
+        w_headerReference.append_attribute("r:id").set_value("rId" + std::to_string(id_));
+        switch (type_)
+        {
+        case SectionProperties::HeaderFooterReference::HeaderFooterType::Default:
+          w_headerReference.append_attribute("w:type") = "default";
+          break;
+        case SectionProperties::HeaderFooterReference::HeaderFooterType::Even:
+          w_headerReference.append_attribute("w:type") = "even";
+          break;
+        case SectionProperties::HeaderFooterReference::HeaderFooterType::First:
+          w_headerReference.append_attribute("w:type") = "first";
+          break;
+        }
+      }
+    }
   }
 
   void Document::writeOfficeDocument()
