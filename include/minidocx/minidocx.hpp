@@ -15,4 +15,6 @@
 #include "word/main/simpleField.hpp"
 #include "word/main/table.hpp"
 #include "word/main/cell.hpp"
+#include "word/main/footer.hpp"
+#include "word/main/header.hpp"
 #include "utils/exceptions.hpp"

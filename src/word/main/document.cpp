@@ -12,13 +12,13 @@
 #include "word/main/table.hpp"
 #include "word/main/cell.hpp"
 #include "word/main/simpleField.hpp"
+#include "word/main/header.hpp"
+#include "word/main/footer.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 #include "utils/exceptions.hpp"
 
 #include "pugixml.hpp"
-
-
 
 namespace MINIDOCX_NAMESPACE
 {
@@ -27,21 +27,20 @@ namespace MINIDOCX_NAMESPACE
     init();
   }
 
-  void Document::saveAs(const std::string& filename)
+  void Document::saveAs(const std::string &filename)
   {
     Zip::open(filename, OpenMode::Create);
     flush();
     Zip::close();
   }
 
-  void Document::load(const std::string& filename)
+  void Document::load(const std::string &filename)
   {
     Zip::open(filename, OpenMode::ReadOnly);
     clear();
     load();
     Zip::close();
   }
-
 
   void Document::init()
   {
@@ -55,6 +54,8 @@ namespace MINIDOCX_NAMESPACE
     writeOfficeDocument();
     writeStyles();
     writeNumDefinitions();
+    writeDocSettings();
+    writeHeadersFooters();
     Package::flush();
   }
 
@@ -67,10 +68,9 @@ namespace MINIDOCX_NAMESPACE
   void Document::load()
   {
     Package::load();
-    //readRelationshipsFor(mainPart_);
-    //readOfficeDocument();
+    // readRelationshipsFor(mainPart_);
+    // readOfficeDocument();
   }
-
 
   void Document::initContentTypes()
   {
@@ -83,10 +83,11 @@ namespace MINIDOCX_NAMESPACE
     initRelationshipsFor(mainPart_);
   }
 
-  static void writeParagraphTab(pugi::xml_node w_tabs, const ParagraphProperties::Tabs& tab)
+  static void writeParagraphTab(pugi::xml_node w_tabs, const ParagraphProperties::Tabs &tab)
   {
     pugi::xml_node w_tab = w_tabs.append_child("w:tab");
-    switch (tab.type_) {
+    switch (tab.type_)
+    {
     case ParagraphProperties::TabType::Bar:
       w_tab.append_attribute("w:val") = "bar";
       break;
@@ -94,7 +95,7 @@ namespace MINIDOCX_NAMESPACE
     case ParagraphProperties::TabType::Center:
       w_tab.append_attribute("w:val") = "center";
       break;
-    
+
     case ParagraphProperties::TabType::Clear:
       w_tab.append_attribute("w:val") = "clear";
       break;
@@ -118,48 +119,50 @@ namespace MINIDOCX_NAMESPACE
 
     w_tab.append_attribute("w:pos") = tab.pos_;
 
-    if(tab.leader_.has_value())
+    if (tab.leader_.has_value())
     {
-      switch (tab.leader_.value()) {
-        case ParagraphProperties::LeaderType::Dot:
-          w_tab.append_attribute("w:leader") = "dot";
-          break;
+      switch (tab.leader_.value())
+      {
+      case ParagraphProperties::LeaderType::Dot:
+        w_tab.append_attribute("w:leader") = "dot";
+        break;
 
-        case ParagraphProperties::LeaderType::Heavy:
-          w_tab.append_attribute("w:leader") = "heavy";
-          break;
+      case ParagraphProperties::LeaderType::Heavy:
+        w_tab.append_attribute("w:leader") = "heavy";
+        break;
 
-        case ParagraphProperties::LeaderType::Hyphen:
-          w_tab.append_attribute("w:leader") = "hyphen";
-          break;
+      case ParagraphProperties::LeaderType::Hyphen:
+        w_tab.append_attribute("w:leader") = "hyphen";
+        break;
 
-        case ParagraphProperties::LeaderType::MiddleDot:
-          w_tab.append_attribute("w:leader") = "middleDot";
-          break;
+      case ParagraphProperties::LeaderType::MiddleDot:
+        w_tab.append_attribute("w:leader") = "middleDot";
+        break;
 
-        case ParagraphProperties::LeaderType::None:
-          w_tab.append_attribute("w:leader") = "none";
-          break;
+      case ParagraphProperties::LeaderType::None:
+        w_tab.append_attribute("w:leader") = "none";
+        break;
 
-        case ParagraphProperties::LeaderType::Underscore:
-          w_tab.append_attribute("w:leader") = "underscore";
-          break;
+      case ParagraphProperties::LeaderType::Underscore:
+        w_tab.append_attribute("w:leader") = "underscore";
+        break;
       }
     }
   }
 
-  static void writeParagraphTabs(pugi::xml_node w_pPr, const std::vector<ParagraphProperties::Tabs>& tabs)
+  static void writeParagraphTabs(pugi::xml_node w_pPr, const std::vector<ParagraphProperties::Tabs> &tabs)
   {
     pugi::xml_node w_tabs = w_pPr.append_child("w:tabs");
-    for(auto& tab: tabs)
+    for (auto &tab : tabs)
     {
       writeParagraphTab(w_tabs, tab);
     }
   }
 
-  static void writeParagraphAlignment(pugi::xml_node w_pPr, const Alignment& align)
+  static void writeParagraphAlignment(pugi::xml_node w_pPr, const Alignment &align)
   {
-    switch (align) {
+    switch (align)
+    {
     case Alignment::Left:
       w_pPr.append_child("w:jc").append_attribute("w:val") = "start";
       break;
@@ -181,33 +184,33 @@ namespace MINIDOCX_NAMESPACE
     }
   }
 
-  static void writeParagraphIndentation(pugi::xml_node w_pPr, const ParagraphProperties::Indentation& indent)
+  static void writeParagraphIndentation(pugi::xml_node w_pPr, const ParagraphProperties::Indentation &indent)
   {
     pugi::xml_node w_ind = w_pPr.append_child("w:ind");
 
     w_ind.append_attribute(
-      indent.left_.chars_ ? "w:leftChars" : "w:left") = indent.left_.value_;
+        indent.left_.chars_ ? "w:leftChars" : "w:left") = indent.left_.value_;
 
     if (indent.right_.value_ != 0)
     {
-        w_ind.append_attribute(
-            indent.right_.chars_ ? "w:rightChars" : "w:right") = indent.right_.value_;
+      w_ind.append_attribute(
+          indent.right_.chars_ ? "w:rightChars" : "w:right") = indent.right_.value_;
     }
     switch (indent.special_.type_)
     {
     case ParagraphProperties::SpecialIndentationType::FirstLine:
       w_ind.append_attribute(
-        indent.special_.chars_ ? "w:firstLineChars" : "w:firstLine") = indent.special_.value_;
+          indent.special_.chars_ ? "w:firstLineChars" : "w:firstLine") = indent.special_.value_;
       break;
 
     case ParagraphProperties::SpecialIndentationType::Hanging:
       w_ind.append_attribute(
-        indent.special_.chars_ ? "w:hangingChars" : "w:hanging") = indent.special_.value_;
+          indent.special_.chars_ ? "w:hangingChars" : "w:hanging") = indent.special_.value_;
       break;
     }
   }
 
-  static void writeParagraphSpacing(pugi::xml_node w_pPr, const ParagraphProperties::Spacing& spacing)
+  static void writeParagraphSpacing(pugi::xml_node w_pPr, const ParagraphProperties::Spacing &spacing)
   {
     pugi::xml_node w_spacing = w_pPr.append_child("w:spacing");
 
@@ -264,9 +267,10 @@ namespace MINIDOCX_NAMESPACE
     }
   }
 
-  static void writeBorderProperties(pugi::xml_node w_border, const BorderProperties& prop)
+  static void writeBorderProperties(pugi::xml_node w_border, const BorderProperties &prop)
   {
-    switch (prop.style_) {
+    switch (prop.style_)
+    {
     case BorderStyle::Single:
       w_border.append_attribute("w:val") = "single";
       break;
@@ -304,7 +308,7 @@ namespace MINIDOCX_NAMESPACE
     w_border.append_attribute("w:color") = prop.color_.c_str();
   }
 
-  static void writeParagraphBorders(pugi::xml_node w_pPr, const ParagraphProperties::ParagraphBorders& borders)
+  static void writeParagraphBorders(pugi::xml_node w_pPr, const ParagraphProperties::ParagraphBorders &borders)
   {
     pugi::xml_node w_pBdr = w_pPr.append_child("w:pBdr");
 
@@ -321,11 +325,11 @@ namespace MINIDOCX_NAMESPACE
     writeBorderProperties(w_right, borders.right_);
   }
 
-  static void writeParagraphProperties(pugi::xml_node w_pPr, const ParagraphProperties& prop)
+  static void writeParagraphProperties(pugi::xml_node w_pPr, const ParagraphProperties &prop)
   {
     if (prop.style_.size() > 0)
       w_pPr.append_child("w:pStyle").append_attribute("w:val") = removeSpaces(prop.style_).c_str();
-    
+
     if (prop.tabs_.has_value())
       writeParagraphTabs(w_pPr, prop.tabs_.value());
 
@@ -357,14 +361,15 @@ namespace MINIDOCX_NAMESPACE
       w_pPr.append_child("w:pageBreakBefore");
   }
 
-  static void writeRichTextProperties(pugi::xml_node w_rPr, const RichTextProperties& prop)
+  static void writeRichTextProperties(pugi::xml_node w_rPr, const RichTextProperties &prop)
   {
     if (prop.style_.size() > 0)
       w_rPr.append_child("w:rStyle").append_attribute("w:val") = removeSpaces(prop.style_).c_str();
 
-    if (prop.font_.has_value()) {
+    if (prop.font_.has_value())
+    {
       pugi::xml_node w_rFonts = w_rPr.append_child("w:rFonts");
-      const RichTextProperties::Font& font = prop.font_.value();
+      const RichTextProperties::Font &font = prop.font_.value();
 
       if (font.ascii_.size() > 0)
         w_rFonts.append_attribute("w:ascii") = font.ascii_.c_str();
@@ -390,27 +395,31 @@ namespace MINIDOCX_NAMESPACE
       }
     }
 
-    if (prop.fontStyle_.bold_) {
+    if (prop.fontStyle_.bold_)
+    {
       w_rPr.append_child("w:b");
       w_rPr.append_child("w:bCs");
     }
 
-    if (prop.fontStyle_.italic_) {
+    if (prop.fontStyle_.italic_)
+    {
       w_rPr.append_child("w:i");
       w_rPr.append_child("w:iCs");
     }
 
-    if (prop.fontSize_ > 0) {
+    if (prop.fontSize_ > 0)
+    {
       w_rPr.append_child("w:sz").append_attribute("w:val") = prop.fontSize_;
       w_rPr.append_child("w:szCs").append_attribute("w:val") = prop.fontSize_;
     }
 
-    if (prop.color_.size() > 0) {
-      w_rPr.append_child("w:color").
-        append_attribute("w:val") = prop.color_.c_str();
+    if (prop.color_.size() > 0)
+    {
+      w_rPr.append_child("w:color").append_attribute("w:val") = prop.color_.c_str();
     }
 
-    if (prop.underline_.style_ != RichTextProperties::UnderlineStyle::None) {
+    if (prop.underline_.style_ != RichTextProperties::UnderlineStyle::None)
+    {
       pugi::xml_node w_u = w_rPr.append_child("w:u");
 
       switch (prop.underline_.style_)
@@ -586,13 +595,14 @@ namespace MINIDOCX_NAMESPACE
       break;
     }
 
-    if (prop.border_.has_value()) {
+    if (prop.border_.has_value())
+    {
       pugi::xml_node w_bdr = w_rPr.append_child("w:bdr");
       writeBorderProperties(w_bdr, prop.border_.value());
     }
   }
 
-  static int hasChar(const char ch, const char* list, const size_t len)
+  static int hasChar(const char ch, const char *list, const size_t len)
   {
     for (int i = 0; i < len; i++)
       if (list[i] == ch)
@@ -600,24 +610,28 @@ namespace MINIDOCX_NAMESPACE
     return -1;
   }
 
-  static void writeText(pugi::xml_node w_r, const char* str, const size_t len, const bool whitespace)
+  static void writeText(pugi::xml_node w_r, const char *str, const size_t len, const bool whitespace)
   {
-    if (len > 0) {
+    if (len > 0)
+    {
       const char chars[] = "\n\t\r";
-      const char* tags[] = { "w:br", "w:tab", nullptr };
+      const char *tags[] = {"w:br", "w:tab", nullptr};
       const size_t num = sizeof(chars) - 1;
 
-      const char* start = str;
-      const char* const end = start + len;
-      const char* p = start;
+      const char *start = str;
+      const char *const end = start + len;
+      const char *p = start;
 
       int index = -1;
-      while (p < end && -1 == (index = hasChar(*p, chars, num))) {
+      while (p < end && -1 == (index = hasChar(*p, chars, num)))
+      {
         p++;
       }
-      while (p < end) {
+      while (p < end)
+      {
         const int count = p - start;
-        if (count > 0) {
+        if (count > 0)
+        {
           pugi::xml_node w_t = w_r.append_child("w:t");
           if (whitespace)
             w_t.append_attribute("xml:space").set_value("preserve");
@@ -632,20 +646,22 @@ namespace MINIDOCX_NAMESPACE
         if (start >= end)
           break;
 
-        while (p < end && -1 == (index = hasChar(*p, chars, num))) {
+        while (p < end && -1 == (index = hasChar(*p, chars, num)))
+        {
           p++;
         }
       }
-      if (start < end) {
+      if (start < end)
+      {
         pugi::xml_node w_t = w_r.append_child("w:t");
         if (whitespace)
-            w_t.append_attribute("xml:space").set_value("preserve");
+          w_t.append_attribute("xml:space").set_value("preserve");
         w_t.text().set(start);
       }
     }
   }
 
-  static void writeRichText(pugi::xml_node w_p, const RichText& rich)
+  static void writeRichText(pugi::xml_node w_p, const RichText &rich)
   {
     pugi::xml_node w_r = w_p.append_child("w:r");
     pugi::xml_node w_rPr = w_r.append_child("w:rPr");
@@ -656,17 +672,18 @@ namespace MINIDOCX_NAMESPACE
 
   static size_t pictCount = 0;
 
-  static void writePicture(pugi::xml_node w_p, const Picture& pict)
+  static void writePicture(pugi::xml_node w_p, const Picture &pict)
   {
     const unsigned int index = ++pictCount;
     const std::string name("Picture " + std::to_string(index));
 
-    const PictureProperties& prop = pict.prop_;
+    const PictureProperties &prop = pict.prop_;
     const auto width = prop.extent_.width_;
     const auto height = prop.extent_.height_;
 
     pugi::xml_node wp_inline = w_p.append_child("w:r")
-      .append_child("w:drawing").append_child("wp:inline");
+                                   .append_child("w:drawing")
+                                   .append_child("wp:inline");
     wp_inline.append_attribute("distT") = "0";
     wp_inline.append_attribute("distB") = "0";
     wp_inline.append_attribute("distL") = "0";
@@ -687,9 +704,9 @@ namespace MINIDOCX_NAMESPACE
     wp_docPr.append_attribute("name") = name.c_str();
 
     pugi::xml_node a_graphicFrameLocks = wp_inline.append_child("wp:cNvGraphicFramePr")
-      .append_child("a:graphicFrameLocks");
+                                             .append_child("a:graphicFrameLocks");
     a_graphicFrameLocks.append_attribute("xmlns:a")
-      .set_value("http://schemas.openxmlformats.org/drawingml/2006/main");
+        .set_value("http://schemas.openxmlformats.org/drawingml/2006/main");
     a_graphicFrameLocks.append_attribute("noChangeAspect") = "1";
 
     pugi::xml_node a_graphic = wp_inline.append_child("a:graphic");
@@ -697,26 +714,26 @@ namespace MINIDOCX_NAMESPACE
     pugi::xml_node pic_pic = a_graphicData.append_child("pic:pic");
 
     a_graphic.append_attribute("xmlns:a")
-      .set_value("http://schemas.openxmlformats.org/drawingml/2006/main");
+        .set_value("http://schemas.openxmlformats.org/drawingml/2006/main");
     a_graphicData.append_attribute("uri")
-      .set_value("http://schemas.openxmlformats.org/drawingml/2006/picture");
+        .set_value("http://schemas.openxmlformats.org/drawingml/2006/picture");
     pic_pic.append_attribute("xmlns:pic")
-      .set_value("http://schemas.openxmlformats.org/drawingml/2006/picture");
+        .set_value("http://schemas.openxmlformats.org/drawingml/2006/picture");
 
     pugi::xml_node pic_nvPicPr = pic_pic.append_child("pic:nvPicPr");
     pugi::xml_node pic_cNvPr = pic_nvPicPr.append_child("pic:cNvPr");
     pic_cNvPr.append_attribute("id") = index;
     pic_cNvPr.append_attribute("name") = name.c_str();
     pugi::xml_node a_picLocks = pic_nvPicPr.append_child("pic:cNvPicPr")
-      .append_child("a:picLocks");
+                                    .append_child("a:picLocks");
     a_picLocks.append_attribute("noChangeAspect") = "1";
     a_picLocks.append_attribute("noChangeArrowheads") = "1";
 
     pugi::xml_node pic_blipFill = pic_pic.append_child("pic:blipFill");
     pugi::xml_node a_blip = pic_blipFill.append_child("a:blip");
     a_blip.append_attribute("r:embed") = Relationship::stringifyId(pict.id_).c_str();
-    pic_blipFill.append_child("a:srcRect"); // Cropping
-    pic_blipFill.append_child("a:stretch").append_child("a:fillRect"); // Stretching 
+    pic_blipFill.append_child("a:srcRect");                            // Cropping
+    pic_blipFill.append_child("a:stretch").append_child("a:fillRect"); // Stretching
 
     pugi::xml_node pic_spPr = pic_pic.append_child("pic:spPr");
     pic_spPr.append_attribute("bwMode") = "auto";
@@ -737,261 +754,262 @@ namespace MINIDOCX_NAMESPACE
     pic_spPr.append_child("a:ln").append_child("a:noFill");
   }
 
-  static void writeSimpleField(pugi::xml_node w_p, const SimpleField& simpleF)
+  static void writeSimpleField(pugi::xml_node w_p, const SimpleField &simpleF)
   {
     pugi::xml_node w_fldSimple = w_p.append_child("w:fldSimple");
 
     switch (simpleF.prop_.code_)
     {
-      case FieldCode::ADDRESSBLOCK :
-        w_fldSimple.append_attribute("w:instr") = "ADDRESSBLOCK";
-        break;
-      case FieldCode::ADVANCE :
-        w_fldSimple.append_attribute("w:instr") = "ADVANCE";
-        break;
-      case FieldCode::ASK :
-        w_fldSimple.append_attribute("w:instr") = "ASK";
-        break;
-      case FieldCode::AUTHOR :
-        w_fldSimple.append_attribute("w:instr") = "AUTHOR";
-        break;
-      case FieldCode::AUTOTEXT :
-        w_fldSimple.append_attribute("w:instr") = "AUTOTEXT";
-        break;
-      case FieldCode::AUTOTEXTLIST :
-        w_fldSimple.append_attribute("w:instr") = "AUTOTEXTLIST";
-        break;
-      case FieldCode::BIBLIOGRAPHY :
-        w_fldSimple.append_attribute("w:instr") = "BIBLIOGRAPHY";
-        break;
-      case FieldCode::CITATION :
-        w_fldSimple.append_attribute("w:instr") = "CITATION";
-        break;
-      case FieldCode::COMMENTS :
-        w_fldSimple.append_attribute("w:instr") = "COMMENTS";
-        break;
-      case FieldCode::COMPARE :
-        w_fldSimple.append_attribute("w:instr") = "COMPARE";
-        break;
-      case FieldCode::CREATEDATE :
-        w_fldSimple.append_attribute("w:instr") = "CREATEDATE";
-        break;
-      case FieldCode::DATABASE :
-        w_fldSimple.append_attribute("w:instr") = "DATABASE";
-        break;
-      case FieldCode::DATE :
-        w_fldSimple.append_attribute("w:instr") = "DATE";
-        break;
-      case FieldCode::DOCPROPERTY :
-        w_fldSimple.append_attribute("w:instr") = "DOCPROPERTY";
-        break;
-      case FieldCode::DOCVARIABLE :
-        w_fldSimple.append_attribute("w:instr") = "DOCVARIABLE";
-        break;
-      case FieldCode::EDITTIME :
-        w_fldSimple.append_attribute("w:instr") = "EDITTIME";
-        break;
-      case FieldCode::FILENAME :
-        w_fldSimple.append_attribute("w:instr") = "FILENAME";
-        break;
-      case FieldCode::FILESIZE :
-        w_fldSimple.append_attribute("w:instr") = "FILESIZE";
-        break;
-      case FieldCode::FILLIN :
-        w_fldSimple.append_attribute("w:instr") = "FILLIN";
-        break;
-      case FieldCode::FORMCHECKBOX :
-        w_fldSimple.append_attribute("w:instr") = "FORMCHECKBOX";
-        break;
-      case FieldCode::FORMDROPDOWN :
-        w_fldSimple.append_attribute("w:instr") = "FORMDROPDOWN";
-        break;
-      case FieldCode::FORMTEXT :
-        w_fldSimple.append_attribute("w:instr") = "FORMTEXT";
-        break;
-      case FieldCode::GOTOBUTTON :
-        w_fldSimple.append_attribute("w:instr") = "GOTOBUTTON";
-        break;
-      case FieldCode::GREETINGLINE :
-        w_fldSimple.append_attribute("w:instr") = "GREETINGLINE";
-        break;
-      case FieldCode::HYPERLINK :
-        w_fldSimple.append_attribute("w:instr") = "HYPERLINK";
-        break;
-      case FieldCode::IF :
-        w_fldSimple.append_attribute("w:instr") = "IF";
-        break;
-      case FieldCode::INCLUDEPICTURE :
-        w_fldSimple.append_attribute("w:instr") = "INCLUDEPICTURE";
-        break;
-      case FieldCode::INCLUDETEXT :
-        w_fldSimple.append_attribute("w:instr") = "INCLUDETEXT";
-        break;
-      case FieldCode::INDEX :
-        w_fldSimple.append_attribute("w:instr") = "INDEX";
-        break;
-      case FieldCode::KEYWORDS :
-        w_fldSimple.append_attribute("w:instr") = "KEYWORDS";
-        break;
-      case FieldCode::LASTSAVEDBY :
-        w_fldSimple.append_attribute("w:instr") = "LASTSAVEDBY";
-        break;
-      case FieldCode::LINK :
-        w_fldSimple.append_attribute("w:instr") = "LINK";
-        break;
-      case FieldCode::LISTNUM :
-        w_fldSimple.append_attribute("w:instr") = "LISTNUM";
-        break;
-      case FieldCode::MACROBUTTON :
-        w_fldSimple.append_attribute("w:instr") = "MACROBUTTON";
-        break;
-      case FieldCode::MERGEFIELD :
-        w_fldSimple.append_attribute("w:instr") = "MERGEFIELD";
-        break;
-      case FieldCode::MERGEREC :
-        w_fldSimple.append_attribute("w:instr") = "MERGEREC";
-        break;
-      case FieldCode::MERGESEQ :
-        w_fldSimple.append_attribute("w:instr") = "MERGESEQ";
-        break;
-      case FieldCode::NEXT :
-        w_fldSimple.append_attribute("w:instr") = "NEXT";
-        break;
-      case FieldCode::NEXTIF :
-        w_fldSimple.append_attribute("w:instr") = "NEXTIF";
-        break;
-      case FieldCode::NOTEREF :
-        w_fldSimple.append_attribute("w:instr") = "NOTEREF";
-        break;
-      case FieldCode::NUMCHARS :
-        w_fldSimple.append_attribute("w:instr") = "NUMCHARS";
-        break;
-      case FieldCode::NUMPAGES :
-        w_fldSimple.append_attribute("w:instr") = "NUMPAGES";
-        break;
-      case FieldCode::NUMWORDS :
-        w_fldSimple.append_attribute("w:instr") = "NUMWORDS";
-        break;
-      case FieldCode::PAGE :
-        w_fldSimple.append_attribute("w:instr") = "PAGE";
-        break;
-      case FieldCode::PAGEREF :
-        w_fldSimple.append_attribute("w:instr") = "PAGEREF";
-        break;
-      case FieldCode::PRINT :
-        w_fldSimple.append_attribute("w:instr") = "PRINT";
-        break;
-      case FieldCode::PRINTDATE :
-        w_fldSimple.append_attribute("w:instr") = "PRINTDATE";
-        break;
-      case FieldCode::PRIVATE :
-        w_fldSimple.append_attribute("w:instr") = "PRIVATE";
-        break;
-      case FieldCode::QUOTE :
-        w_fldSimple.append_attribute("w:instr") = "QUOTE";
-        break;
-      case FieldCode::RD :
-        w_fldSimple.append_attribute("w:instr") = "RD";
-        break;
-      case FieldCode::REF :
-        w_fldSimple.append_attribute("w:instr") = "REF";
-        break;
-      case FieldCode::REVNUM :
-        w_fldSimple.append_attribute("w:instr") = "REVNUM";
-        break;
-      case FieldCode::SAVEDATE :
-        w_fldSimple.append_attribute("w:instr") = "SAVEDATE";
-        break;
-      case FieldCode::SECTION :
-        w_fldSimple.append_attribute("w:instr") = "SECTION";
-        break;
-      case FieldCode::SECTIONPAGES :
-        w_fldSimple.append_attribute("w:instr") = "SECTIONPAGES";
-        break;
-      case FieldCode::SEQ :
-        w_fldSimple.append_attribute("w:instr") = "SEQ";
-        break;
-      case FieldCode::SET :
-        w_fldSimple.append_attribute("w:instr") = "SET";
-        break;
-      case FieldCode::SKIPIF :
-        w_fldSimple.append_attribute("w:instr") = "SKIPIF";
-        break;
-      case FieldCode::STYLEREF :
-        w_fldSimple.append_attribute("w:instr") = "STYLEREF";
-        break;
-      case FieldCode::SUBJECT :
-        w_fldSimple.append_attribute("w:instr") = "SUBJECT";
-        break;
-      case FieldCode::SYMBOL :
-        w_fldSimple.append_attribute("w:instr") = "SYMBOL";
-        break;
-      case FieldCode::TA :
-        w_fldSimple.append_attribute("w:instr") = "TA";
-        break;
-      case FieldCode::TC :
-        w_fldSimple.append_attribute("w:instr") = "TC";
-        break;
-      case FieldCode::TEMPLATE :
-        w_fldSimple.append_attribute("w:instr") = "TEMPLATE";
-        break;
-      case FieldCode::TIME :
-        w_fldSimple.append_attribute("w:instr") = "TIME";
-        break;
-      case FieldCode::TITLE :
-        w_fldSimple.append_attribute("w:instr") = "TITLE";
-        break;
-      case FieldCode::TOA :
-        w_fldSimple.append_attribute("w:instr") = "TOA";
-        break;
-      case FieldCode::TOC :
-        w_fldSimple.append_attribute("w:instr") = "TOC";
-        break;
-      case FieldCode::USERADDRESS :
-        w_fldSimple.append_attribute("w:instr") = "USERADDRESS";
-        break;
-      case FieldCode::USERINITIALS :
-        w_fldSimple.append_attribute("w:instr") = "USERINITIALS";
-        break;
-      case FieldCode::USERNAME :
-        w_fldSimple.append_attribute("w:instr") = "USERNAME";
-        break;
-      case FieldCode::XE :
-        w_fldSimple.append_attribute("w:instr") = "XE";
-        break;
+    case FieldCode::ADDRESSBLOCK:
+      w_fldSimple.append_attribute("w:instr") = "ADDRESSBLOCK";
+      break;
+    case FieldCode::ADVANCE:
+      w_fldSimple.append_attribute("w:instr") = "ADVANCE";
+      break;
+    case FieldCode::ASK:
+      w_fldSimple.append_attribute("w:instr") = "ASK";
+      break;
+    case FieldCode::AUTHOR:
+      w_fldSimple.append_attribute("w:instr") = "AUTHOR";
+      break;
+    case FieldCode::AUTOTEXT:
+      w_fldSimple.append_attribute("w:instr") = "AUTOTEXT";
+      break;
+    case FieldCode::AUTOTEXTLIST:
+      w_fldSimple.append_attribute("w:instr") = "AUTOTEXTLIST";
+      break;
+    case FieldCode::BIBLIOGRAPHY:
+      w_fldSimple.append_attribute("w:instr") = "BIBLIOGRAPHY";
+      break;
+    case FieldCode::CITATION:
+      w_fldSimple.append_attribute("w:instr") = "CITATION";
+      break;
+    case FieldCode::COMMENTS:
+      w_fldSimple.append_attribute("w:instr") = "COMMENTS";
+      break;
+    case FieldCode::COMPARE:
+      w_fldSimple.append_attribute("w:instr") = "COMPARE";
+      break;
+    case FieldCode::CREATEDATE:
+      w_fldSimple.append_attribute("w:instr") = "CREATEDATE";
+      break;
+    case FieldCode::DATABASE:
+      w_fldSimple.append_attribute("w:instr") = "DATABASE";
+      break;
+    case FieldCode::DATE:
+      w_fldSimple.append_attribute("w:instr") = "DATE";
+      break;
+    case FieldCode::DOCPROPERTY:
+      w_fldSimple.append_attribute("w:instr") = "DOCPROPERTY";
+      break;
+    case FieldCode::DOCVARIABLE:
+      w_fldSimple.append_attribute("w:instr") = "DOCVARIABLE";
+      break;
+    case FieldCode::EDITTIME:
+      w_fldSimple.append_attribute("w:instr") = "EDITTIME";
+      break;
+    case FieldCode::FILENAME:
+      w_fldSimple.append_attribute("w:instr") = "FILENAME";
+      break;
+    case FieldCode::FILESIZE:
+      w_fldSimple.append_attribute("w:instr") = "FILESIZE";
+      break;
+    case FieldCode::FILLIN:
+      w_fldSimple.append_attribute("w:instr") = "FILLIN";
+      break;
+    case FieldCode::FORMCHECKBOX:
+      w_fldSimple.append_attribute("w:instr") = "FORMCHECKBOX";
+      break;
+    case FieldCode::FORMDROPDOWN:
+      w_fldSimple.append_attribute("w:instr") = "FORMDROPDOWN";
+      break;
+    case FieldCode::FORMTEXT:
+      w_fldSimple.append_attribute("w:instr") = "FORMTEXT";
+      break;
+    case FieldCode::GOTOBUTTON:
+      w_fldSimple.append_attribute("w:instr") = "GOTOBUTTON";
+      break;
+    case FieldCode::GREETINGLINE:
+      w_fldSimple.append_attribute("w:instr") = "GREETINGLINE";
+      break;
+    case FieldCode::HYPERLINK:
+      w_fldSimple.append_attribute("w:instr") = "HYPERLINK";
+      break;
+    case FieldCode::IF:
+      w_fldSimple.append_attribute("w:instr") = "IF";
+      break;
+    case FieldCode::INCLUDEPICTURE:
+      w_fldSimple.append_attribute("w:instr") = "INCLUDEPICTURE";
+      break;
+    case FieldCode::INCLUDETEXT:
+      w_fldSimple.append_attribute("w:instr") = "INCLUDETEXT";
+      break;
+    case FieldCode::INDEX:
+      w_fldSimple.append_attribute("w:instr") = "INDEX";
+      break;
+    case FieldCode::KEYWORDS:
+      w_fldSimple.append_attribute("w:instr") = "KEYWORDS";
+      break;
+    case FieldCode::LASTSAVEDBY:
+      w_fldSimple.append_attribute("w:instr") = "LASTSAVEDBY";
+      break;
+    case FieldCode::LINK:
+      w_fldSimple.append_attribute("w:instr") = "LINK";
+      break;
+    case FieldCode::LISTNUM:
+      w_fldSimple.append_attribute("w:instr") = "LISTNUM";
+      break;
+    case FieldCode::MACROBUTTON:
+      w_fldSimple.append_attribute("w:instr") = "MACROBUTTON";
+      break;
+    case FieldCode::MERGEFIELD:
+      w_fldSimple.append_attribute("w:instr") = "MERGEFIELD";
+      break;
+    case FieldCode::MERGEREC:
+      w_fldSimple.append_attribute("w:instr") = "MERGEREC";
+      break;
+    case FieldCode::MERGESEQ:
+      w_fldSimple.append_attribute("w:instr") = "MERGESEQ";
+      break;
+    case FieldCode::NEXT:
+      w_fldSimple.append_attribute("w:instr") = "NEXT";
+      break;
+    case FieldCode::NEXTIF:
+      w_fldSimple.append_attribute("w:instr") = "NEXTIF";
+      break;
+    case FieldCode::NOTEREF:
+      w_fldSimple.append_attribute("w:instr") = "NOTEREF";
+      break;
+    case FieldCode::NUMCHARS:
+      w_fldSimple.append_attribute("w:instr") = "NUMCHARS";
+      break;
+    case FieldCode::NUMPAGES:
+      w_fldSimple.append_attribute("w:instr") = "NUMPAGES";
+      break;
+    case FieldCode::NUMWORDS:
+      w_fldSimple.append_attribute("w:instr") = "NUMWORDS";
+      break;
+    case FieldCode::PAGE:
+      w_fldSimple.append_attribute("w:instr") = "PAGE";
+      break;
+    case FieldCode::PAGEREF:
+      w_fldSimple.append_attribute("w:instr") = "PAGEREF";
+      break;
+    case FieldCode::PRINT:
+      w_fldSimple.append_attribute("w:instr") = "PRINT";
+      break;
+    case FieldCode::PRINTDATE:
+      w_fldSimple.append_attribute("w:instr") = "PRINTDATE";
+      break;
+    case FieldCode::PRIVATE:
+      w_fldSimple.append_attribute("w:instr") = "PRIVATE";
+      break;
+    case FieldCode::QUOTE:
+      w_fldSimple.append_attribute("w:instr") = "QUOTE";
+      break;
+    case FieldCode::RD:
+      w_fldSimple.append_attribute("w:instr") = "RD";
+      break;
+    case FieldCode::REF:
+      w_fldSimple.append_attribute("w:instr") = "REF";
+      break;
+    case FieldCode::REVNUM:
+      w_fldSimple.append_attribute("w:instr") = "REVNUM";
+      break;
+    case FieldCode::SAVEDATE:
+      w_fldSimple.append_attribute("w:instr") = "SAVEDATE";
+      break;
+    case FieldCode::SECTION:
+      w_fldSimple.append_attribute("w:instr") = "SECTION";
+      break;
+    case FieldCode::SECTIONPAGES:
+      w_fldSimple.append_attribute("w:instr") = "SECTIONPAGES";
+      break;
+    case FieldCode::SEQ:
+      w_fldSimple.append_attribute("w:instr") = "SEQ";
+      break;
+    case FieldCode::SET:
+      w_fldSimple.append_attribute("w:instr") = "SET";
+      break;
+    case FieldCode::SKIPIF:
+      w_fldSimple.append_attribute("w:instr") = "SKIPIF";
+      break;
+    case FieldCode::STYLEREF:
+      w_fldSimple.append_attribute("w:instr") = "STYLEREF";
+      break;
+    case FieldCode::SUBJECT:
+      w_fldSimple.append_attribute("w:instr") = "SUBJECT";
+      break;
+    case FieldCode::SYMBOL:
+      w_fldSimple.append_attribute("w:instr") = "SYMBOL";
+      break;
+    case FieldCode::TA:
+      w_fldSimple.append_attribute("w:instr") = "TA";
+      break;
+    case FieldCode::TC:
+      w_fldSimple.append_attribute("w:instr") = "TC";
+      break;
+    case FieldCode::TEMPLATE:
+      w_fldSimple.append_attribute("w:instr") = "TEMPLATE";
+      break;
+    case FieldCode::TIME:
+      w_fldSimple.append_attribute("w:instr") = "TIME";
+      break;
+    case FieldCode::TITLE:
+      w_fldSimple.append_attribute("w:instr") = "TITLE";
+      break;
+    case FieldCode::TOA:
+      w_fldSimple.append_attribute("w:instr") = "TOA";
+      break;
+    case FieldCode::TOC:
+      w_fldSimple.append_attribute("w:instr") = "TOC";
+      break;
+    case FieldCode::USERADDRESS:
+      w_fldSimple.append_attribute("w:instr") = "USERADDRESS";
+      break;
+    case FieldCode::USERINITIALS:
+      w_fldSimple.append_attribute("w:instr") = "USERINITIALS";
+      break;
+    case FieldCode::USERNAME:
+      w_fldSimple.append_attribute("w:instr") = "USERNAME";
+      break;
+    case FieldCode::XE:
+      w_fldSimple.append_attribute("w:instr") = "XE";
+      break;
     }
 
-    if(simpleF.prop_.lock_.has_value())
+    if (simpleF.prop_.lock_.has_value())
       w_fldSimple.append_attribute("w:fldLock") = simpleF.prop_.lock_.value();
 
-    if(simpleF.prop_.dirty_.has_value())
+    if (simpleF.prop_.dirty_.has_value())
       w_fldSimple.append_attribute("w:dirty") = simpleF.prop_.dirty_.value();
   }
 
-  static void writeRun(pugi::xml_node w_p, Run& run)
+  static void writeRun(pugi::xml_node w_p, Run &run)
   {
     switch (run.type())
     {
     case RunType::RichText:
-      writeRichText(w_p, dynamic_cast<RichText&>(run));
+      writeRichText(w_p, dynamic_cast<RichText &>(run));
       break;
 
     case RunType::Picture:
-      writePicture(w_p, dynamic_cast<Picture&>(run));
+      writePicture(w_p, dynamic_cast<Picture &>(run));
       break;
 
     case RunType::SimpleField:
-      writeSimpleField(w_p, dynamic_cast<SimpleField&> (run));
+      writeSimpleField(w_p, dynamic_cast<SimpleField &>(run));
       break;
     }
   }
 
-  static pugi::xml_node writeParagraph(pugi::xml_node w_body, Paragraph& para)
+  static pugi::xml_node writeParagraph(pugi::xml_node w_body, Paragraph &para)
   {
     pugi::xml_node w_p = w_body.append_child("w:p");
     pugi::xml_node w_pPr = w_p.append_child("w:pPr");
 
-    if (para.numId_ > 0) {
+    if (para.numId_ > 0)
+    {
       pugi::xml_node w_numPr = w_pPr.append_child("w:numPr");
       w_numPr.append_child("w:numId").append_attribute("w:val") = para.numId_;
       w_numPr.append_child("w:ilvl").append_attribute("w:val") = static_cast<unsigned int>(para.level_);
@@ -999,13 +1017,13 @@ namespace MINIDOCX_NAMESPACE
 
     writeParagraphProperties(w_pPr, para.prop_);
 
-    for (auto& run : para.runs())
+    for (auto &run : para.runs())
       writeRun(w_p, *run);
 
     return w_p;
   }
 
-  static void writeTableBorders(pugi::xml_node w_tblPr, const TableBorders& borders)
+  static void writeTableBorders(pugi::xml_node w_tblPr, const TableBorders &borders)
   {
     pugi::xml_node w_tblBorders = w_tblPr.append_child("w:tblBorders");
 
@@ -1024,7 +1042,7 @@ namespace MINIDOCX_NAMESPACE
     writeBorderProperties(w_insideV, borders.insideVertical_);
   }
 
-  static void writeTableProperties(pugi::xml_node w_tblPr, const TableProperties& prop)
+  static void writeTableProperties(pugi::xml_node w_tblPr, const TableProperties &prop)
   {
     if (prop.layout_ == TableProperties::Layout::Fixed)
       w_tblPr.append_child("w:tblLayout").append_attribute("w:type") = "fixed";
@@ -1048,7 +1066,8 @@ namespace MINIDOCX_NAMESPACE
     }
 
     pugi::xml_node w_jc = w_tblPr.append_child("w:jc");
-    switch (prop.align_) {
+    switch (prop.align_)
+    {
     case TableProperties::Alignment::Left:
       w_jc.append_attribute("w:val") = "start";
       break;
@@ -1065,16 +1084,16 @@ namespace MINIDOCX_NAMESPACE
     writeTableBorders(w_tblPr, prop.borders_);
   }
 
-  static pugi::xml_node writeBlock(pugi::xml_node w_body, Block& block);
+  static pugi::xml_node writeBlock(pugi::xml_node w_body, Block &block);
 
-  static pugi::xml_node writeTable(pugi::xml_node w_body, const Table& tbl)
+  static pugi::xml_node writeTable(pugi::xml_node w_body, const Table &tbl)
   {
     pugi::xml_node w_tbl = w_body.append_child("w:tbl");
     pugi::xml_node w_tblPr = w_tbl.append_child("w:tblPr");
 
     writeTableProperties(w_tblPr, tbl.prop_);
 
-    const Rect& tblRect = tbl.rect();
+    const Rect &tblRect = tbl.rect();
 
     pugi::xml_node w_tblGrid = w_tbl.append_child("w:tblGrid");
     for (size_t j = 0; j < tblRect.cols(); j++)
@@ -1082,13 +1101,15 @@ namespace MINIDOCX_NAMESPACE
 
     const size_t colWidth = 5000 / tblRect.cols();
 
-    for (size_t i = 0; i < tblRect.rows(); i++) {
+    for (size_t i = 0; i < tblRect.rows(); i++)
+    {
       pugi::xml_node w_tr = w_tbl.append_child("w:tr");
 
       size_t j = 0;
-      while (j < tblRect.cols()) {
-        const Cell& cell = *tbl.cellAtUnsafe(i, j);
-        const Rect& cellRect = cell.rect();
+      while (j < tblRect.cols())
+      {
+        const Cell &cell = *tbl.cellAtUnsafe(i, j);
+        const Rect &cellRect = cell.rect();
 
         pugi::xml_node w_tc = w_tr.append_child("w:tc");
         pugi::xml_node w_tcPr = w_tc.append_child("w:tcPr");
@@ -1096,7 +1117,8 @@ namespace MINIDOCX_NAMESPACE
         if (cellRect.cols() > 1)
           w_tcPr.append_child("w:gridSpan").append_attribute("w:val") = cellRect.cols();
 
-        if (i == cellRect.row()) {
+        if (i == cellRect.row())
+        {
           if (cellRect.rows() > 1)
             w_tcPr.append_child("w:vMerge").append_attribute("w:val") = "restart";
 
@@ -1104,15 +1126,18 @@ namespace MINIDOCX_NAMESPACE
           w_tcW.append_attribute("w:type") = "pct";
           w_tcW.append_attribute("w:w") = colWidth * cellRect.cols();
 
-          if (cell.blocks().size() == 0) {
+          if (cell.blocks().size() == 0)
+          {
             w_tc.append_child("w:p");
           }
-          else {
-            for (auto& block : cell.blocks())
+          else
+          {
+            for (auto &block : cell.blocks())
               writeBlock(w_tc, *block);
           }
         }
-        else {
+        else
+        {
           if (i == cellRect.rrow())
             w_tcPr.append_child("w:vMerge");
           else
@@ -1127,316 +1152,313 @@ namespace MINIDOCX_NAMESPACE
     return w_tbl;
   }
 
-  static pugi::xml_node writeBlock(pugi::xml_node w_body, Block& block)
+  static pugi::xml_node writeBlock(pugi::xml_node w_body, Block &block)
   {
     switch (block.type())
     {
     case BlockType::Paragraph:
-      return writeParagraph(w_body, dynamic_cast<Paragraph&>(block));
+      return writeParagraph(w_body, dynamic_cast<Paragraph &>(block));
 
     case BlockType::Table:
-      return writeTable(w_body, dynamic_cast<Table&>(block));
+      return writeTable(w_body, dynamic_cast<Table &>(block));
 
     default:
       return pugi::xml_node();
     }
   }
 
-  static void writeNumberingFormat(pugi::xml_attribute attribute, const NumberFormat& numFor)
+  static void writeNumberingFormat(pugi::xml_attribute attribute, const NumberFormat &numFor)
   {
-    switch(numFor)
+    switch (numFor)
     {
-      case NumberFormat::AIUEO:
-        attribute.set_value("aiueo");
-        break;
+    case NumberFormat::AIUEO:
+      attribute.set_value("aiueo");
+      break;
 
-      case NumberFormat::AIUEOFullWidth:
-        attribute.set_value("aiueoFullWidth");
-        break;
+    case NumberFormat::AIUEOFullWidth:
+      attribute.set_value("aiueoFullWidth");
+      break;
 
-      case NumberFormat::ArabicAbjad:
-        attribute.set_value("arabicAbjad");
-        break;
+    case NumberFormat::ArabicAbjad:
+      attribute.set_value("arabicAbjad");
+      break;
 
-      case NumberFormat::ArabicAlphabet:
-        attribute.set_value("arabicAlpha");
-        break;
+    case NumberFormat::ArabicAlphabet:
+      attribute.set_value("arabicAlpha");
+      break;
 
-      case NumberFormat::Baht:
-        attribute.set_value("bahtText");
-        break;
+    case NumberFormat::Baht:
+      attribute.set_value("bahtText");
+      break;
 
-      case NumberFormat::Bullet:
-        attribute.set_value("bullet");
-        break;
+    case NumberFormat::Bullet:
+      attribute.set_value("bullet");
+      break;
 
-      case NumberFormat::CardinalText:
-        attribute.set_value("cardinalText");
-        break;
+    case NumberFormat::CardinalText:
+      attribute.set_value("cardinalText");
+      break;
 
-      case NumberFormat::Chicago:
-        attribute.set_value("chicago");
-        break;
+    case NumberFormat::Chicago:
+      attribute.set_value("chicago");
+      break;
 
-      case NumberFormat::ChineseCounting:
-        attribute.set_value("chineseCounting");
-        break;
+    case NumberFormat::ChineseCounting:
+      attribute.set_value("chineseCounting");
+      break;
 
-      case NumberFormat::ChineseCountingThousand:
-        attribute.set_value("chineseCountingThousand");
-        break;
+    case NumberFormat::ChineseCountingThousand:
+      attribute.set_value("chineseCountingThousand");
+      break;
 
-      case NumberFormat::ChineseLegalSimplified:
-        attribute.set_value("chineseLegalSimplified");
-        break;
+    case NumberFormat::ChineseLegalSimplified:
+      attribute.set_value("chineseLegalSimplified");
+      break;
 
-      case NumberFormat::Chosung:
-        attribute.set_value("chosung");
-        break;
+    case NumberFormat::Chosung:
+      attribute.set_value("chosung");
+      break;
 
-      case NumberFormat::Custom:
-        attribute.set_value("custom");
-        break;
+    case NumberFormat::Custom:
+      attribute.set_value("custom");
+      break;
 
-      case NumberFormat::Decimal:
-        attribute.set_value("decimal");
-        break;
+    case NumberFormat::Decimal:
+      attribute.set_value("decimal");
+      break;
 
-      case NumberFormat::DecimalEnclosedCircle:
-        attribute.set_value("decimalEnclosedCircle");
-        break;
+    case NumberFormat::DecimalEnclosedCircle:
+      attribute.set_value("decimalEnclosedCircle");
+      break;
 
-      case NumberFormat::DecimalEnclosedCircleChinese:
-        attribute.set_value("decimalEnclosedCircleChinese");
-        break;
+    case NumberFormat::DecimalEnclosedCircleChinese:
+      attribute.set_value("decimalEnclosedCircleChinese");
+      break;
 
-      case NumberFormat::DecimalEnclosedFullstop:
-        attribute.set_value("decimalEnclosedFullstop");
-        break;
+    case NumberFormat::DecimalEnclosedFullstop:
+      attribute.set_value("decimalEnclosedFullstop");
+      break;
 
-      case NumberFormat::DecimalEnclosedParen:
-        attribute.set_value("decimalEnclosedParen");
-        break;
+    case NumberFormat::DecimalEnclosedParen:
+      attribute.set_value("decimalEnclosedParen");
+      break;
 
-      case NumberFormat::DecimalFullWidth:
-        attribute.set_value("decimalFullWidth");
-        break;
+    case NumberFormat::DecimalFullWidth:
+      attribute.set_value("decimalFullWidth");
+      break;
 
-      case NumberFormat::DecimalHalfWidth:
-        attribute.set_value("decimalHalfWidth");
-        break;
+    case NumberFormat::DecimalHalfWidth:
+      attribute.set_value("decimalHalfWidth");
+      break;
 
-      case NumberFormat::DecimalZero:
-        attribute.set_value("decimalZero");
-        break;
+    case NumberFormat::DecimalZero:
+      attribute.set_value("decimalZero");
+      break;
 
-      case NumberFormat::Dollar:
-        attribute.set_value("dollarText");
-        break;
+    case NumberFormat::Dollar:
+      attribute.set_value("dollarText");
+      break;
 
-      case NumberFormat::Ganada:
-        attribute.set_value("ganada");
-        break;
+    case NumberFormat::Ganada:
+      attribute.set_value("ganada");
+      break;
 
-      case NumberFormat::HebrewLetters:
-        attribute.set_value("hebrew1");
-        break;
+    case NumberFormat::HebrewLetters:
+      attribute.set_value("hebrew1");
+      break;
 
-      case NumberFormat::HebrewAlphabet:
-        attribute.set_value("hebrew2");
-        break;
+    case NumberFormat::HebrewAlphabet:
+      attribute.set_value("hebrew2");
+      break;
 
-      case NumberFormat::Hex:
-        attribute.set_value("hex");
-        break;
+    case NumberFormat::Hex:
+      attribute.set_value("hex");
+      break;
 
-      case NumberFormat::HindiConsonants:
-        attribute.set_value("hindiConsonants");
-        break;
+    case NumberFormat::HindiConsonants:
+      attribute.set_value("hindiConsonants");
+      break;
 
-      case NumberFormat::HindiCounting:
-        attribute.set_value("hindiCounting");
-        break;
+    case NumberFormat::HindiCounting:
+      attribute.set_value("hindiCounting");
+      break;
 
-      case NumberFormat::HindiNumbers:
-        attribute.set_value("hindiNumbers");
-        break;
+    case NumberFormat::HindiNumbers:
+      attribute.set_value("hindiNumbers");
+      break;
 
-      case NumberFormat::HindiVowels:
-        attribute.set_value("hindiVowels");
-        break;
+    case NumberFormat::HindiVowels:
+      attribute.set_value("hindiVowels");
+      break;
 
-      case NumberFormat::Ideograph:
-        attribute.set_value("ideographDigital");
-        break;
+    case NumberFormat::Ideograph:
+      attribute.set_value("ideographDigital");
+      break;
 
-      case NumberFormat::IdeographEnclosedCircle:
-        attribute.set_value("ideographEnclosedCircle");
-        break;
+    case NumberFormat::IdeographEnclosedCircle:
+      attribute.set_value("ideographEnclosedCircle");
+      break;
 
-      case NumberFormat::IdeographLegalTraditional:
-        attribute.set_value("ideographLegalTraditional");
-        break;
+    case NumberFormat::IdeographLegalTraditional:
+      attribute.set_value("ideographLegalTraditional");
+      break;
 
-      case NumberFormat::IdeographTraditional:
-        attribute.set_value("ideographTraditional");
-        break;
+    case NumberFormat::IdeographTraditional:
+      attribute.set_value("ideographTraditional");
+      break;
 
-      case NumberFormat::IdeographZodiac:
-        attribute.set_value("ideographZodiac");
-        break;
+    case NumberFormat::IdeographZodiac:
+      attribute.set_value("ideographZodiac");
+      break;
 
-      case NumberFormat::IdeographZodiacTraditional:
-        attribute.set_value("ideographZodiacTraditional");
-        break;
+    case NumberFormat::IdeographZodiacTraditional:
+      attribute.set_value("ideographZodiacTraditional");
+      break;
 
-      case NumberFormat::Iroha:
-        attribute.set_value("iroha");
-        break;
+    case NumberFormat::Iroha:
+      attribute.set_value("iroha");
+      break;
 
-      case NumberFormat::IrohaFullWidth:
-        attribute.set_value("irohaFullWidth");
-        break;
+    case NumberFormat::IrohaFullWidth:
+      attribute.set_value("irohaFullWidth");
+      break;
 
-      case NumberFormat::JapaneseCounting:
-        attribute.set_value("japaneseCounting");
-        break;
+    case NumberFormat::JapaneseCounting:
+      attribute.set_value("japaneseCounting");
+      break;
 
-      case NumberFormat::JapaneseDigitalTenThousand:
-        attribute.set_value("japaneseDigitalTenThousand");
-        break;
+    case NumberFormat::JapaneseDigitalTenThousand:
+      attribute.set_value("japaneseDigitalTenThousand");
+      break;
 
-      case NumberFormat::JapaneseLegal:
-        attribute.set_value("japaneseLegal");
-        break;
+    case NumberFormat::JapaneseLegal:
+      attribute.set_value("japaneseLegal");
+      break;
 
-      case NumberFormat::KoreanCounting:
-        attribute.set_value("koreanCounting");
-        break;
+    case NumberFormat::KoreanCounting:
+      attribute.set_value("koreanCounting");
+      break;
 
-      case NumberFormat::KoreanDigital:
-        attribute.set_value("koreanDigital");
-        break;
+    case NumberFormat::KoreanDigital:
+      attribute.set_value("koreanDigital");
+      break;
 
-      case NumberFormat::KoreanDigitalAlternate:
-        attribute.set_value("koreanDigital2");
-        break;
+    case NumberFormat::KoreanDigitalAlternate:
+      attribute.set_value("koreanDigital2");
+      break;
 
-      case NumberFormat::KoreanLegal:
-        attribute.set_value("koreanLegal");
-        break;
+    case NumberFormat::KoreanLegal:
+      attribute.set_value("koreanLegal");
+      break;
 
-      case NumberFormat::LowerLetter:
-        attribute.set_value("lowerLetter");
-        break;
+    case NumberFormat::LowerLetter:
+      attribute.set_value("lowerLetter");
+      break;
 
-      case NumberFormat::LowerRoman:
-        attribute.set_value("lowerRoman");
-        break;
+    case NumberFormat::LowerRoman:
+      attribute.set_value("lowerRoman");
+      break;
 
-      case NumberFormat::None:
-        attribute.set_value("none");
-        break;
+    case NumberFormat::None:
+      attribute.set_value("none");
+      break;
 
-      case NumberFormat::NumberInDash:
-        attribute.set_value("numberInDash");
-        break;
+    case NumberFormat::NumberInDash:
+      attribute.set_value("numberInDash");
+      break;
 
-      case NumberFormat::Ordinal:
-        attribute.set_value("ordinal");
-        break;
+    case NumberFormat::Ordinal:
+      attribute.set_value("ordinal");
+      break;
 
-      case NumberFormat::OrdinalText:
-        attribute.set_value("ordinalText");
-        break;
+    case NumberFormat::OrdinalText:
+      attribute.set_value("ordinalText");
+      break;
 
-      case NumberFormat::RussianLower:
-        attribute.set_value("russianLower");
-        break;
+    case NumberFormat::RussianLower:
+      attribute.set_value("russianLower");
+      break;
 
-      case NumberFormat::RussianUpper:
-        attribute.set_value("russianUpper");
-        break;
+    case NumberFormat::RussianUpper:
+      attribute.set_value("russianUpper");
+      break;
 
-      case NumberFormat::TaiwaneseCounting:
-        attribute.set_value("taiwaneseCounting");
-        break;
+    case NumberFormat::TaiwaneseCounting:
+      attribute.set_value("taiwaneseCounting");
+      break;
 
-      case NumberFormat::TaiwaneseCountingThousand:
-        attribute.set_value("taiwaneseCountingThousand");
-        break;
+    case NumberFormat::TaiwaneseCountingThousand:
+      attribute.set_value("taiwaneseCountingThousand");
+      break;
 
-      case NumberFormat::TaiwaneseDigital:
-        attribute.set_value("taiwaneseDigital");
-        break;
+    case NumberFormat::TaiwaneseDigital:
+      attribute.set_value("taiwaneseDigital");
+      break;
 
-      case NumberFormat::ThaiCounting:
-        attribute.set_value("thaiCounting");
-        break;
+    case NumberFormat::ThaiCounting:
+      attribute.set_value("thaiCounting");
+      break;
 
-      case NumberFormat::ThaiLetters:
-        attribute.set_value("thaiLetters");
-        break;
+    case NumberFormat::ThaiLetters:
+      attribute.set_value("thaiLetters");
+      break;
 
-      case NumberFormat::ThaiNumbers:
-        attribute.set_value("thaiNumbers");
-        break;
+    case NumberFormat::ThaiNumbers:
+      attribute.set_value("thaiNumbers");
+      break;
 
-      case NumberFormat::UpperLetter:
-        attribute.set_value("upperLetter");
-        break;
+    case NumberFormat::UpperLetter:
+      attribute.set_value("upperLetter");
+      break;
 
-      case NumberFormat::UpperRoman:
-        attribute.set_value("upperRoman");
-        break;
+    case NumberFormat::UpperRoman:
+      attribute.set_value("upperRoman");
+      break;
 
-      case NumberFormat::VietnameseCounting:
-        attribute.set_value("vietnameseCounting");
-        break;
+    case NumberFormat::VietnameseCounting:
+      attribute.set_value("vietnameseCounting");
+      break;
     }
   }
 
-
-  static void writePageNumbering(pugi::xml_node w_pgNumType, const SectionProperties::PageNumbering& pgNum)
+  static void writePageNumbering(pugi::xml_node w_pgNumType, const SectionProperties::PageNumbering &pgNum)
   {
-    if(pgNum.chapSep_.has_value())
+    if (pgNum.chapSep_.has_value())
     {
-      switch(pgNum.chapSep_.value())
+      switch (pgNum.chapSep_.value())
       {
-        case SectionProperties::ChapSeparatorTypes::Colon:
-          w_pgNumType.append_attribute("w:chapSep") = "colon";
-          break;
-        
-        case SectionProperties::ChapSeparatorTypes::EMDash:
-          w_pgNumType.append_attribute("w:chapSep") = "emDash";
-          break;
+      case SectionProperties::ChapSeparatorTypes::Colon:
+        w_pgNumType.append_attribute("w:chapSep") = "colon";
+        break;
 
-        case SectionProperties::ChapSeparatorTypes::ENDash:
-          w_pgNumType.append_attribute("w:chapSep") = "enDash";
-          break;
+      case SectionProperties::ChapSeparatorTypes::EMDash:
+        w_pgNumType.append_attribute("w:chapSep") = "emDash";
+        break;
 
-        case SectionProperties::ChapSeparatorTypes::Hyphen:
-          w_pgNumType.append_attribute("w:chapSep") = "hyphen";
-          break;
-        
-        case SectionProperties::ChapSeparatorTypes::Period:
-          w_pgNumType.append_attribute("w:chapSep") = "period";
-          break;
+      case SectionProperties::ChapSeparatorTypes::ENDash:
+        w_pgNumType.append_attribute("w:chapSep") = "enDash";
+        break;
+
+      case SectionProperties::ChapSeparatorTypes::Hyphen:
+        w_pgNumType.append_attribute("w:chapSep") = "hyphen";
+        break;
+
+      case SectionProperties::ChapSeparatorTypes::Period:
+        w_pgNumType.append_attribute("w:chapSep") = "period";
+        break;
       }
     }
 
-    if(pgNum.chapStyle_.has_value())
+    if (pgNum.chapStyle_.has_value())
       w_pgNumType.append_attribute("w:chapStyle") = pgNum.chapStyle_.value();
-    
-    if(pgNum.fmt_.has_value())
 
+    if (pgNum.fmt_.has_value())
 
-    if(pgNum.startNum_.has_value())
-      w_pgNumType.append_attribute("w:start") = pgNum.startNum_.value();
-
+      if (pgNum.startNum_.has_value())
+        w_pgNumType.append_attribute("w:start") = pgNum.startNum_.value();
   }
 
-  static void writeSectionProperties(pugi::xml_node w_pPr, const SectionProperties& prop)
+  static void writeSectionProperties(pugi::xml_node w_pPr, const SectionProperties &prop)
   {
     pugi::xml_node w_sectPr = w_pPr.append_child("w:sectPr");
 
@@ -1444,12 +1466,14 @@ namespace MINIDOCX_NAMESPACE
     w_type.append_attribute("w:val") = "nextPage";
 
     pugi::xml_node w_pgSz = w_sectPr.append_child("w:pgSz");
-    if (prop.landscape_) {
+    if (prop.landscape_)
+    {
       w_pgSz.append_attribute("w:w") = prop.size_.height_;
       w_pgSz.append_attribute("w:h") = prop.size_.width_;
       w_pgSz.append_attribute("w:orient") = "landscape";
     }
-    else {
+    else
+    {
       w_pgSz.append_attribute("w:w") = prop.size_.width_;
       w_pgSz.append_attribute("w:h") = prop.size_.height_;
     }
@@ -1463,8 +1487,28 @@ namespace MINIDOCX_NAMESPACE
     w_pgMar.append_attribute("w:footer") = prop.margins_.footer_;
     w_pgMar.append_attribute("w:gutter") = prop.margins_.gutter_;
 
-    if(prop.pageNumbering_.has_value())
+    if (prop.pageNumbering_.has_value())
       writePageNumbering(w_sectPr.append_child("w:pgNumType"), prop.pageNumbering_.value());
+    if (prop.footreferences_.has_value())
+    {
+      for (auto &[id_, type_] : prop.footreferences_.value())
+      {
+        pugi::xml_node w_footerReference = w_sectPr.append_child("w:footerReference");
+        w_footerReference.append_attribute("r:id").set_value("rId" + std::to_string(id_));
+        switch (type_)
+        {
+        case SectionProperties::HeaderFooterReference::HeaderFooterType::Default:
+          w_footerReference.append_attribute("w:type") = "default";
+          break;
+        case SectionProperties::HeaderFooterReference::HeaderFooterType::Even:
+          w_footerReference.append_attribute("w:type") = "even";
+          break;
+        case SectionProperties::HeaderFooterReference::HeaderFooterType::First:
+          w_footerReference.append_attribute("w:type") = "first";
+          break;
+        }
+      }
+    }
   }
 
   void Document::writeOfficeDocument()
@@ -1472,28 +1516,31 @@ namespace MINIDOCX_NAMESPACE
     pugi::xml_document doc;
     pugi::xml_node root = doc.append_child("w:document");
     root.append_attribute("xmlns:w")
-      .set_value("http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+        .set_value("http://schemas.openxmlformats.org/wordprocessingml/2006/main");
     root.append_attribute("xmlns:r")
-      .set_value("http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+        .set_value("http://schemas.openxmlformats.org/officeDocument/2006/relationships");
     root.append_attribute("xmlns:wp")
-      .set_value("http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing");
+        .set_value("http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing");
 
     pugi::xml_node body = root.append_child("w:body");
 
     if (sections_.size() == 0)
       addSection();
 
-    for (auto iter = sections_.begin(); iter != std::prev(sections_.end()); iter++) {
-      auto& ptr = *iter;
+    for (auto iter = sections_.begin(); iter != std::prev(sections_.end()); iter++)
+    {
+      auto &ptr = *iter;
 
       if (ptr->blocks().size() == 0)
         ptr->addParagraph();
 
       pugi::xml_node w_p;
-      for (auto& block : ptr->blocks())
+      for (auto &block : ptr->blocks())
         w_p = writeBlock(body, *block);
 
-      if (ptr->blocks().back()->type() == BlockType::Table) {}
+      if (ptr->blocks().back()->type() == BlockType::Table)
+      {
+      }
       w_p = body.append_child("w:p");
 
       pugi::xml_node w_pPr = w_p.child("w:pPr");
@@ -1503,11 +1550,11 @@ namespace MINIDOCX_NAMESPACE
       writeSectionProperties(w_pPr, ptr->prop_);
     }
 
-    auto& ptr = sections_.back();
+    auto &ptr = sections_.back();
     if (ptr->blocks().size() == 0)
       ptr->addParagraph();
 
-    for (auto& block : ptr->blocks())
+    for (auto &block : ptr->blocks())
       writeBlock(body, *block);
 
     writeSectionProperties(body, ptr->prop_);
@@ -1516,15 +1563,14 @@ namespace MINIDOCX_NAMESPACE
     pictCount = 0;
   }
 
-
   SectionPointer Document::addSection()
   {
-    auto section{ std::make_shared<Section>() };
+    auto section{std::make_shared<Section>()};
     sections_.push_back(section);
     return section;
   }
 
-  void Document::deleteSection(const SectionPointer& section)
+  void Document::deleteSection(const SectionPointer &section)
   {
     section->destroy();
     sections_.remove(section);
@@ -1532,11 +1578,10 @@ namespace MINIDOCX_NAMESPACE
 
   void Document::clearSections()
   {
-    for (auto& section : sections_)
+    for (auto &section : sections_)
       section->destroy();
     sections_.clear();
   }
-
 
   RelationshipId Document::addImage(Buffer buf, const FileType type)
   {
@@ -1550,17 +1595,16 @@ namespace MINIDOCX_NAMESPACE
     return addRelationshipFor(mainPart_, PartType::Image, name, Relationship::TargetMode::Internal);
   }
 
-  RelationshipId Document::addImage(const FileName& filename)
+  RelationshipId Document::addImage(const FileName &filename)
   {
     const FileType type = getFileType(filename);
     if (type == FileType::Unknown)
       throw invalid_parameter();
-    
+
     Buffer buf;
     readFile(buf, filename);
     return addImage(std::move(buf), type);
   }
-
 
   void Document::writeStyles()
   {
@@ -1572,9 +1616,10 @@ namespace MINIDOCX_NAMESPACE
     pugi::xml_document doc;
     pugi::xml_node root = doc.append_child("w:styles");
     root.append_attribute("xmlns:w")
-      .set_value(toPartRootNamespace(PartType::Style));
+        .set_value(toPartRootNamespace(PartType::Style));
 
-    for (const auto& ref : paragraphStyles_) {
+    for (const auto &ref : paragraphStyles_)
+    {
       pugi::xml_node w_style = root.append_child("w:style");
       w_style.append_attribute("w:type") = "paragraph";
       w_style.append_attribute("w:styleId") = ref.first.c_str();
@@ -1591,7 +1636,8 @@ namespace MINIDOCX_NAMESPACE
       writeRichTextProperties(w_style.append_child("w:rPr"), ref.second);
     }
 
-    for (const auto& ref : characterStyles_) {
+    for (const auto &ref : characterStyles_)
+    {
       pugi::xml_node w_style = root.append_child("w:style");
       w_style.append_attribute("w:type") = "character";
       w_style.append_attribute("w:styleId") = ref.first.c_str();
@@ -1607,16 +1653,15 @@ namespace MINIDOCX_NAMESPACE
     writePart(stylePart_, doc);
   }
 
-  void Document::addParagraphStyle(const ParagraphStyle& style)
+  void Document::addParagraphStyle(const ParagraphStyle &style)
   {
     paragraphStyles_[removeSpaces(style.name_)] = style;
   }
 
-  void Document::addCharacterStyle(const CharacterStyle& style)
+  void Document::addCharacterStyle(const CharacterStyle &style)
   {
     characterStyles_[removeSpaces(style.name_)] = style;
   }
-
 
   void Document::writeNumDefinitions()
   {
@@ -1628,9 +1673,10 @@ namespace MINIDOCX_NAMESPACE
     pugi::xml_document doc;
     pugi::xml_node root = doc.append_child("w:numbering");
     root.append_attribute("xmlns:w")
-      .set_value(toPartRootNamespace(PartType::Numbering));
+        .set_value(toPartRootNamespace(PartType::Numbering));
 
-    for (const auto& numDef : abstractNumDefinitions_) {
+    for (const auto &numDef : abstractNumDefinitions_)
+    {
       pugi::xml_node w_abstractNum = root.append_child("w:abstractNum");
       w_abstractNum.append_attribute("w:abstractNumId") = numDef.first;
 
@@ -1654,7 +1700,8 @@ namespace MINIDOCX_NAMESPACE
       }
 
       size_t count = 0;
-      for (const auto& lvl : numDef.second.levels_) {
+      for (const auto &lvl : numDef.second.levels_)
+      {
         pugi::xml_node w_lvl = w_abstractNum.append_child("w:lvl");
         w_lvl.append_attribute("w:ilvl") = count++;
 
@@ -1681,25 +1728,26 @@ namespace MINIDOCX_NAMESPACE
 
         if (lvl.suffCon_.has_value())
         {
-            switch (lvl.suffCon_.value())
-            {
-            case SuffType::Nothing:
-                w_lvl.append_child("w:suff").append_attribute("w:val") = "nothing";
-                break;
+          switch (lvl.suffCon_.value())
+          {
+          case SuffType::Nothing:
+            w_lvl.append_child("w:suff").append_attribute("w:val") = "nothing";
+            break;
 
-            case SuffType::Space:
-                w_lvl.append_child("w:suff").append_attribute("w:val") = "space";
-                break;
+          case SuffType::Space:
+            w_lvl.append_child("w:suff").append_attribute("w:val") = "space";
+            break;
 
-            case SuffType::Tab:
-                w_lvl.append_child("w:suff").append_attribute("w:val") = "tab";
-                break;
-            }
+          case SuffType::Tab:
+            w_lvl.append_child("w:suff").append_attribute("w:val") = "tab";
+            break;
+          }
         }
-        
+
         w_lvl.append_child("w:lvlText").append_attribute("w:val") = lvl.numFmt_.c_str();
 
-        switch (lvl.numAlign_) {
+        switch (lvl.numAlign_)
+        {
         case Alignment::Left:
           w_lvl.append_child("w:lvlJc").append_attribute("w:val") = "left";
           break;
@@ -1719,13 +1767,14 @@ namespace MINIDOCX_NAMESPACE
         case Alignment::Distributed:
           w_lvl.append_child("w:lvlJc").append_attribute("w:val") = "distribute";
         }
-        
+
         writeParagraphProperties(w_lvl.append_child("w:pPr"), lvl);
         writeRichTextProperties(w_lvl.append_child("w:rPr"), lvl);
       }
     }
 
-    for (const auto& numDef : numDefinitions_) {
+    for (const auto &numDef : numDefinitions_)
+    {
       pugi::xml_node w_num = root.append_child("w:num");
       w_num.append_attribute("w:numId") = numDef.first;
       w_num.append_child("w:abstractNumId").append_attribute("w:val") = numDef.second.id_;
@@ -1733,5 +1782,83 @@ namespace MINIDOCX_NAMESPACE
     }
 
     writePart(numPart_, doc);
+  }
+
+  void Document::writeDocSettings()
+  {
+    registerOverrideContentType(settingsPart_, toPartMediaType(PartType::Setting));
+    addRelationshipFor(mainPart_, PartType::Setting, settingsPart_, Relationship::TargetMode::Internal);
+
+    pugi::xml_document doc;
+    pugi::xml_node root = doc.append_child("w:settings");
+    root.append_attribute("xmlns:w")
+        .set_value(toPartRootNamespace(PartType::Setting));
+
+    if (settings_.evenOddHeader_)
+      root.append_child("w:evenAndOddHeaders");
+
+    writePart(settingsPart_, doc);
+  }
+
+  FooterPointer Document::addFooter()
+  {
+
+    const size_t count = ++footerCount_;
+    const PartName name(FOOT_PREFIX + std::to_string(count) + ".xml");
+    registerOverrideContentType(name, toPartMediaType(PartType::Footer));
+    RelationshipId id = addRelationshipFor(mainPart_, PartType::Footer, name, Relationship::TargetMode::Internal);
+
+    auto pointer{std::make_shared<Footer>(id, name)};
+    footers_.push_back(pointer);
+
+    return pointer;
+  }
+
+  HeaderPointer Document::addHeader()
+  {
+    const size_t count = ++footerCount_;
+    const PartName name(HEAD_PREFIX + std::to_string(count) + ".xml");
+    registerOverrideContentType(name, toPartMediaType(PartType::Header));
+    RelationshipId id = addRelationshipFor(mainPart_, PartType::Header, name, Relationship::TargetMode::Internal);
+
+    auto pointer{std::make_shared<Header>(id, name)};
+    headers_.push_back(pointer);
+
+    return pointer;
+  }
+
+  void Document::writeHeadersFooters()
+  {
+    for (auto &headerPtr : headers_)
+    {
+      pugi::xml_document doc;
+      pugi::xml_node root = doc.append_child("w:hdr");
+      root.append_attribute("xmlns:w")
+          .set_value(toPartRootNamespace(PartType::Header));
+
+      if (headerPtr->blocks().size() == 0)
+        headerPtr->addParagraph();
+
+      for (auto &block : headerPtr->blocks())
+        writeBlock(root, *block);
+
+      writePart(headerPtr->name_, doc);
+    }
+
+    for (auto &footerPtr : footers_)
+    {
+      pugi::xml_document doc;
+      pugi::xml_node root = doc.append_child("w:ftr");
+      root.append_attribute("xmlns:w")
+          .set_value(toPartRootNamespace(PartType::Footer));
+
+      if (footerPtr->blocks().size() == 0)
+        footerPtr->addParagraph();
+
+      for (auto &block : footerPtr->blocks())
+        writeBlock(root, *block);
+
+      writePart(footerPtr->name_, doc);
+    }
   }
 }

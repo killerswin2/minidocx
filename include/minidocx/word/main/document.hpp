@@ -10,6 +10,7 @@
 #include "packaging/package.hpp"
 #include "word/styles.hpp"
 #include "word/numbering.hpp"
+#include "word/settings.hpp"
 
 #include <memory>
 #include <string>
@@ -23,8 +24,12 @@ namespace MINIDOCX_NAMESPACE
   class Paragraph;
   class Table;
   class Picture;
+  class Header;
+  class Footer;
 
   using SectionPointer = std::shared_ptr<Section>;
+  using HeaderPointer = std::shared_ptr<Header>;
+  using FooterPointer = std::shared_ptr<Footer>;
 
   class MINIDOCX_API Document : public Package
   {
@@ -120,5 +125,22 @@ namespace MINIDOCX_NAMESPACE
       return addNumDefinition(
         addAbstractNumDefinition(AbstractNumberingDefinition::makeBulletedList()));
     }
+  private:
+    PartName settingsPart_{ DOCSETTING_PART };
+
+    void writeDocSettings();
+
+  public:
+    DocumentSettings settings_;
+  private:
+    size_t headerCount_ = 0;
+    size_t footerCount_ = 0;
+    std::list<HeaderPointer> headers_;
+    std::list<FooterPointer> footers_;
+  public:
+    FooterPointer addFooter();
+    HeaderPointer addHeader();
+  private:
+    void writeHeadersFooters();
   };
 }

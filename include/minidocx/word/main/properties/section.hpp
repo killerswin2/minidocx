@@ -120,6 +120,27 @@ namespace MINIDOCX_NAMESPACE
     };
 
     std::optional<PageNumbering> pageNumbering_;
+    
+
+    struct HeaderFooterReference
+    {
+      enum class HeaderFooterType
+      {
+        // First page only, contingent on titlePg setting
+        First,
+        // On all even pages, contingent on evenAndOddHeaders
+        // setting
+        Even,
+        // On every page, becomes odd  pages contingent on 
+        // evenAndOddHeaders setting 
+        Default
+      };
+      RelationshipId id_;
+      HeaderFooterType type_;
+    };
+
+    std::optional<std::vector<HeaderFooterReference>> hdrreferences_;
+    std::optional<std::vector<HeaderFooterReference>> footreferences_;
 
     // Document grid 文档网格
     // This element specifies the settings for the document grid, 

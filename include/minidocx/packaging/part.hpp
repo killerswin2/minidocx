@@ -19,6 +19,9 @@
 #define STYLE_PART "/word/styles.xml"
 #define NUM_PART   "/word/numbering.xml"
 #define IMG_PREFIX "/word/media/image"
+#define DOCSETTING_PART "/word/setting.xml"
+#define FOOT_PREFIX "/word/footer"
+#define HEAD_PREFIX "/word/header"
 
 
 namespace MINIDOCX_NAMESPACE
