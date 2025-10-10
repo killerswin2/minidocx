@@ -1494,7 +1494,7 @@ namespace MINIDOCX_NAMESPACE
       for (auto &[id_, type_] : prop.footreferences_.value())
       {
         pugi::xml_node w_footerReference = w_sectPr.append_child("w:footerReference");
-        w_footerReference.append_attribute("r:id").set_value("rId" + std::to_string(id_));
+        w_footerReference.append_attribute("r:id").set_value(("rId" + std::to_string(id_)).c_str());
         switch (type_)
         {
         case SectionProperties::HeaderFooterReference::HeaderFooterType::Default:
@@ -1514,7 +1514,7 @@ namespace MINIDOCX_NAMESPACE
       for (auto &[id_, type_] : prop.hdrreferences_.value())
       {
         pugi::xml_node w_headerReference = w_sectPr.append_child("w:headerReference");
-        w_headerReference.append_attribute("r:id").set_value("rId" + std::to_string(id_));
+        w_headerReference.append_attribute("r:id").set_value(("rId" + std::to_string(id_)).c_str());
         switch (type_)
         {
         case SectionProperties::HeaderFooterReference::HeaderFooterType::Default:
