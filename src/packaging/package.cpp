@@ -51,8 +51,8 @@ namespace MINIDOCX_NAMESPACE
   void Package::writePart(const PartName& name, pugi::xml_document& doc)
   {
 #ifndef NDEBUG
-    std::clog << "-----> " << name.generic_string() << std::endl;
-    doc.save(std::clog, "  ", pugi::format_indent | pugi::format_no_declaration);
+    //std::clog << "-----> " << name.generic_string() << std::endl;
+    //doc.save(std::clog, "  ", pugi::format_indent | pugi::format_no_declaration);
 #endif
     pugi::xml_node decl = doc.prepend_child(pugi::node_declaration);
     decl.append_attribute("version") = "1.0";
@@ -69,7 +69,7 @@ namespace MINIDOCX_NAMESPACE
   {
     for (auto& ref : buffered_) {
 #ifndef NDEBUG
-      std::clog << "-----> " << ref.first.generic_string() << std::endl;
+      //std::clog << "-----> " << ref.first.generic_string() << std::endl;
 #endif
       addFileFromMem(ref.first, ref.second.data(), ref.second.size());
     }

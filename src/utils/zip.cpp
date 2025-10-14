@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <memory>
 #include <sstream>
-
 // for memmove
 #include <cstring>
 
@@ -461,7 +460,7 @@ namespace MINIDOCX_NAMESPACE
     const auto mtime = extractFileToStream(name, fout);
 
     fout.close();
-    fs::last_write_time(dst, std::chrono::clock_cast<std::chrono::file_clock>(mtime));
+    fs::last_write_time(dst, std::chrono::file_clock::from_sys(mtime));
   }
 
   std::string Zip::extractFileToString(const fs::path& name)
@@ -526,9 +525,10 @@ namespace MINIDOCX_NAMESPACE
     fin.open(src, std::ios::binary);
     if (fin.fail())
       throw io_error(src.string(), "cannot open file");
-
     addFileFromStream(name, fin,
-      std::chrono::clock_cast<std::chrono::system_clock>(fs::last_write_time(src)));
+      std::chrono::system_clock::from_time_t( std::chrono::file_clock::to_sys(fs::last_write_time(src)).time_since_epoch().count())
+    );
+     
   }
 
   void Zip::addFileFromString(const fs::path& name, const std::string& data)

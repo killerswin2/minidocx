@@ -76,6 +76,24 @@
                     "intelliSenseMode": "ios-clang-arm64"
                 }
             }
+        },
+        {
+            "name": "arm64-mac-make-clang",
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "/usr/bin/clang",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "intelliSenseMode": "ios-clang-arm64"
+                }
+            }
         }
     ],
     "buildPresets": [
@@ -117,6 +135,16 @@
         {
             "name": "arm64-mac-make-gcc-release",
             "configurePreset": "arm64-mac-make-gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "arm64-mac-make-clang-debug",
+            "configurePreset": "arm64-mac-make-clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "arm64-mac-make-clang-release",
+            "configurePreset": "arm64-mac-make-clang",
             "configuration": "Release"
         }
     ]
